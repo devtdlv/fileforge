@@ -249,6 +249,40 @@ QCheckBox:focus {
     color: #102A43;
 }
 
+/* ---------- Tables / progress ---------- */
+QTableView {
+    background-color: #FFFFFF;
+    alternate-background-color: #F8FAFC;
+    border: 1px solid #D9E2EC;
+    border-radius: 8px;
+    gridline-color: #E4E7EB;
+    selection-background-color: #D6E4FF;
+    selection-color: #102A43;
+}
+
+QHeaderView::section {
+    background-color: #F0F4F8;
+    color: #243B53;
+    padding: 8px 10px;
+    border: none;
+    border-right: 1px solid #D9E2EC;
+    border-bottom: 1px solid #D9E2EC;
+    font-weight: 600;
+}
+
+QProgressBar {
+    background-color: #E4E7EB;
+    border: none;
+    border-radius: 6px;
+    min-height: 8px;
+    max-height: 8px;
+}
+
+QProgressBar::chunk {
+    background-color: #2F6FED;
+    border-radius: 6px;
+}
+
 /* ---------- Status / empty ---------- */
 #StatusBar {
     background-color: #FFFFFF;

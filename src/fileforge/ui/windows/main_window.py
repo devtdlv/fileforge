@@ -29,7 +29,7 @@ from fileforge.ui.widgets.sidebar import Sidebar
 
 
 class MainWindow(QMainWindow):
-    """Shell window hosting navigation and milestone-1 content pages."""
+    """Shell window hosting navigation and application pages."""
 
     def __init__(
         self,
@@ -75,9 +75,13 @@ class MainWindow(QMainWindow):
         dashboard = DashboardPage()
         dashboard.open_scanner_requested.connect(lambda: self.show_page("scanner"))
 
+        scanner = ScannerPage()
+        scanner.scan_summary_changed.connect(dashboard.set_last_scan_summary)
+        scanner.scan_summary_changed.connect(self._on_scan_summary)
+
         pages: list[tuple[str, QWidget]] = [
             ("dashboard", dashboard),
-            ("scanner", ScannerPage()),
+            ("scanner", scanner),
             ("organizer", OrganizerPage()),
             ("duplicates", DuplicatesPage()),
             ("renamer", RenamerPage()),
@@ -121,7 +125,30 @@ class MainWindow(QMainWindow):
         if status is not None:
             status.showMessage(f"{__app_name__} v{__version__}  |  {page_title}")
 
+    def _on_scan_summary(self, summary: str) -> None:
+        status = self.statusBar()
+        if status is None:
+            return
+        if summary.strip():
+            status.showMessage(f"{__app_name__} v{__version__}  |  {summary}")
+        elif self.current_page_id() == "scanner":
+            status.showMessage(f"{__app_name__} v{__version__}  |  Folder Scanner")
+
     def closeEvent(self, event: QCloseEvent) -> None:  # noqa: N802 - Qt API
+        scanner = self._pages.get("scanner")
+        if isinstance(scanner, ScannerPage) and scanner.is_scanning:
+            answer = QMessageBox.question(
+                self,
+                "Scan in progress",
+                "A folder scan is still running. Cancel it and exit FileForge?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
+            )
+            if answer != QMessageBox.StandardButton.Yes:
+                event.ignore()
+                return
+            scanner.cancel_active_scan()
+
         confirm = self._settings.get(SETTING_CONFIRM_EXIT, "1")
         if confirm == "0":
             event.accept()
@@ -130,7 +157,7 @@ class MainWindow(QMainWindow):
         answer = QMessageBox.question(
             self,
             "Exit FileForge",
-            "Close FileForge? No file operations are in progress in this milestone.",
+            "Close FileForge?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
         )

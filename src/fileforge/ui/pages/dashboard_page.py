@@ -51,10 +51,10 @@ class DashboardPage(QWidget):
         hero_layout.addWidget(hero_title)
 
         hero_body = QLabel(
-            "The Folder Scanner will become your read-only entry point for "
-            "inventory and storage review. Scanning is not implemented yet, "
-            "and FileForge will not touch personal files until you review and "
-            "confirm a plan in a later milestone."
+            "Use the Folder Scanner to inventory a folder you choose. Scanning "
+            "is read-only and never modifies files. Organization, rename, and "
+            "recovery tools arrive in later milestones and will require "
+            "explicit confirmation."
         )
         hero_body.setObjectName("BodyLabel")
         hero_body.setWordWrap(True)
@@ -75,6 +75,30 @@ class DashboardPage(QWidget):
         actions.addStretch(1)
         hero_layout.addLayout(actions)
         layout.addWidget(hero)
+
+        self.scan_summary_card = QFrame()
+        self.scan_summary_card.setObjectName("SectionCard")
+        self.scan_summary_card.setVisible(False)
+        summary_layout = QVBoxLayout(self.scan_summary_card)
+        summary_layout.setContentsMargins(24, 22, 24, 22)
+        summary_layout.setSpacing(8)
+
+        summary_kicker = QLabel("Latest scan (this session)")
+        summary_kicker.setObjectName("SectionKicker")
+        summary_layout.addWidget(summary_kicker)
+
+        self.scan_summary_label = QLabel("")
+        self.scan_summary_label.setObjectName("BodyLabel")
+        self.scan_summary_label.setWordWrap(True)
+        summary_layout.addWidget(self.scan_summary_label)
+
+        summary_note = QLabel(
+            "Scan results are not persisted between application restarts yet."
+        )
+        summary_note.setObjectName("MutedLabel")
+        summary_note.setWordWrap(True)
+        summary_layout.addWidget(summary_note)
+        layout.addWidget(self.scan_summary_card)
 
         safety = QFrame()
         safety.setObjectName("SectionCard")
@@ -107,10 +131,20 @@ class DashboardPage(QWidget):
         layout.addWidget(safety)
 
         note = QLabel(
-            "No fabricated storage metrics are shown here. Feature pages that "
-            "are still in progress use clear empty states instead of fake data."
+            "No fabricated storage metrics are shown here. The summary above "
+            "appears only after you complete a scan in this session."
         )
         note.setObjectName("MutedLabel")
         note.setWordWrap(True)
         layout.addWidget(note)
         layout.addStretch(1)
+
+    def set_last_scan_summary(self, summary: str) -> None:
+        """Show or hide the in-session scan summary card."""
+        text = summary.strip()
+        if not text:
+            self.scan_summary_card.setVisible(False)
+            self.scan_summary_label.clear()
+            return
+        self.scan_summary_label.setText(text)
+        self.scan_summary_card.setVisible(True)

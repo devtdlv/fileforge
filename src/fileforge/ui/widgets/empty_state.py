@@ -24,20 +24,27 @@ class EmptyStateWidget(QFrame):
         layout.setContentsMargins(28, 28, 28, 28)
         layout.setSpacing(10)
 
-        badge_label = QLabel(badge)
-        badge_label.setObjectName("BadgeLabel")
-        badge_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        layout.addWidget(badge_label, alignment=Qt.AlignmentFlag.AlignLeft)
+        self._badge_label = QLabel(badge)
+        self._badge_label.setObjectName("BadgeLabel")
+        self._badge_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        layout.addWidget(self._badge_label, alignment=Qt.AlignmentFlag.AlignLeft)
 
-        title_label = QLabel(title)
-        title_label.setObjectName("EmptyStateTitle")
-        title_label.setWordWrap(True)
-        layout.addWidget(title_label)
+        self._title_label = QLabel(title)
+        self._title_label.setObjectName("EmptyStateTitle")
+        self._title_label.setWordWrap(True)
+        layout.addWidget(self._title_label)
 
-        body_label = QLabel(body)
-        body_label.setObjectName("EmptyStateBody")
-        body_label.setWordWrap(True)
-        body_label.setMaximumWidth(640)
-        layout.addWidget(body_label)
+        self._body_label = QLabel(body)
+        self._body_label.setObjectName("EmptyStateBody")
+        self._body_label.setWordWrap(True)
+        self._body_label.setMaximumWidth(640)
+        layout.addWidget(self._body_label)
 
         layout.addStretch(1)
+
+    def set_content(self, title: str, body: str, badge: str | None = None) -> None:
+        """Update the visible empty-state copy."""
+        self._title_label.setText(title)
+        self._body_label.setText(body)
+        if badge is not None:
+            self._badge_label.setText(badge)

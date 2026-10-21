@@ -92,7 +92,8 @@ def test_unfinished_actions_are_disabled(main_window: MainWindow) -> None:
     renamer = main_window._pages["renamer"]
     history = main_window._pages["history"]
 
-    assert scanner.choose_folder_button.isEnabled() is False
+    assert scanner.choose_folder_button.isEnabled() is True
+    assert scanner.start_button.isEnabled() is False
     assert organizer.apply_plan_button.isEnabled() is False
     assert duplicates.delete_selected_button.isEnabled() is False
     assert renamer.apply_rename_button.isEnabled() is False
