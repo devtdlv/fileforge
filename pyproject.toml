@@ -1,0 +1,76 @@
+[build-system]
+requires = ["setuptools>=75.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fileforge"
+version = "0.1.0"
+description = "A local-first Windows desktop app for safe file organization, duplicate detection, and bulk renaming."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.13"
+authors = [
+    { name = "FileForge Contributors" },
+]
+keywords = ["desktop", "files", "organization", "duplicates", "rename", "pyside6"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Win32 (MS Windows)",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Desktop Environment :: File Managers",
+]
+dependencies = [
+    "PySide6>=6.8.0,<6.10",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-qt>=4.4.0",
+    "ruff>=0.9.0",
+]
+
+[project.scripts]
+fileforge = "fileforge.main:run"
+
+[project.urls]
+Homepage = "https://github.com/example/fileforge"
+Documentation = "https://github.com/example/fileforge#readme"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+fileforge = ["resources/*", "ui/styles/*"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+pythonpath = ["src"]
+qt_api = "pyside6"
+addopts = "-ra"
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "F",    # pyflakes
+    "I",    # isort
+    "UP",   # pyupgrade
+    "B",    # bugbear
+    "SIM",  # simplify
+]
+ignore = [
+    "E501",  # line length handled by formatter preference
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["fileforge"]
