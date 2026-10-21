@@ -20,6 +20,14 @@ SAFETY_PRINCIPLES: Final[tuple[str, ...]] = (
     "Tests must use temporary directories rather than personal files.",
 )
 
+# Concise highlights for the dashboard; full list remains in SAFETY_PRINCIPLES.
+SAFETY_HIGHLIGHTS: Final[tuple[str, ...]] = (
+    "Preview first: scanning never changes files.",
+    "No silent overwrites or automatic duplicate deletion.",
+    "Explicit confirmation before any filesystem change.",
+    "Undo only when safe, verified, and journaled.",
+)
+
 
 def format_safety_principles() -> str:
     """Return a numbered, human-readable list of safety principles."""

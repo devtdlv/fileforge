@@ -32,6 +32,35 @@ def test_main_window_constructs(main_window: MainWindow) -> None:
     assert main_window.minimumWidth() >= 1024
     assert main_window.minimumHeight() >= 640
     assert QApplication.instance() is not None
+    status = main_window.statusBar()
+    assert status is not None
+    message = status.currentMessage()
+    assert "FileForge v" in message
+    assert "fileforge.db" not in message.lower()
+    assert str(main_window._database.path).lower() not in message.lower()
+
+
+def test_sidebar_items_have_icons(main_window: MainWindow) -> None:
+    nav = main_window.sidebar._list
+    assert nav.count() == len(NAV_ITEMS)
+    for row in range(nav.count()):
+        item = nav.item(row)
+        assert item is not None
+        assert not item.icon().isNull()
+
+
+def test_dashboard_uses_concise_safety_overview(main_window: MainWindow) -> None:
+    from PySide6.QtWidgets import QLabel
+
+    from fileforge.core.safety import SAFETY_HIGHLIGHTS, SAFETY_PRINCIPLES
+
+    dashboard = main_window._pages["dashboard"]
+    texts = " ".join(label.text() for label in dashboard.findChildren(QLabel))
+    assert "Safety overview" in texts
+    assert "Open Folder Scanner" in dashboard.open_scanner_button.text()
+    for highlight in SAFETY_HIGHLIGHTS:
+        assert highlight in texts
+    assert SAFETY_PRINCIPLES[-1] not in texts
 
 
 def test_all_navigation_pages_available(main_window: MainWindow) -> None:

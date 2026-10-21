@@ -68,9 +68,7 @@ class MainWindow(QMainWindow):
 
         status = QStatusBar()
         status.setObjectName("StatusBar")
-        status.showMessage(
-            f"{__app_name__} v{__version__}  |  Local database: {database.path}"
-        )
+        status.showMessage(f"{__app_name__} v{__version__}  |  Ready")
         self.setStatusBar(status)
 
     def _register_pages(self) -> None:
@@ -119,6 +117,9 @@ class MainWindow(QMainWindow):
         }
         page_title = titles.get(page_id, page_id)
         self.setWindowTitle(f"{__app_name__} - {page_title}")
+        status = self.statusBar()
+        if status is not None:
+            status.showMessage(f"{__app_name__} v{__version__}  |  {page_title}")
 
     def closeEvent(self, event: QCloseEvent) -> None:  # noqa: N802 - Qt API
         confirm = self._settings.get(SETTING_CONFIRM_EXIT, "1")

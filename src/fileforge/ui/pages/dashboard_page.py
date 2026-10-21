@@ -2,10 +2,17 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import Signal
-from PySide6.QtWidgets import QFrame, QLabel, QPushButton, QVBoxLayout, QWidget
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtWidgets import (
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
 
-from fileforge.core.safety import SAFETY_PRINCIPLES
+from fileforge.core.safety import SAFETY_HIGHLIGHTS
 from fileforge.ui.widgets.page_header import PageHeader
 
 
@@ -17,54 +24,93 @@ class DashboardPage(QWidget):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(28, 28, 28, 28)
-        layout.setSpacing(20)
+        layout.setContentsMargins(32, 28, 32, 28)
+        layout.setSpacing(22)
 
         layout.addWidget(
             PageHeader(
                 "Welcome to FileForge",
-                "A local-first Windows toolkit for organizing files, finding "
-                "duplicates, bulk renaming, and reviewing storage safely, "
-                "with clear previews before any change.",
+                "Organize files, find duplicates, and rename in bulk on your "
+                "own PC. Changes are previewed first and never applied silently.",
             )
         )
 
-        intro = QFrame()
-        intro.setObjectName("SectionCard")
-        intro_layout = QVBoxLayout(intro)
-        intro_layout.setContentsMargins(20, 20, 20, 20)
-        intro_layout.setSpacing(12)
+        hero = QFrame()
+        hero.setObjectName("HeroCard")
+        hero_layout = QVBoxLayout(hero)
+        hero_layout.setContentsMargins(24, 24, 24, 24)
+        hero_layout.setSpacing(14)
 
-        purpose = QLabel(
-            "Start by opening the Folder Scanner. Scanning and preview never "
-            "modify your files. Organization, rename, and recovery tools arrive "
-            "in later milestones and will require explicit confirmation."
+        hero_kicker = QLabel("Start here")
+        hero_kicker.setObjectName("SectionKicker")
+        hero_layout.addWidget(hero_kicker)
+
+        hero_title = QLabel("Open the Folder Scanner")
+        hero_title.setObjectName("HeroTitle")
+        hero_title.setWordWrap(True)
+        hero_layout.addWidget(hero_title)
+
+        hero_body = QLabel(
+            "The Folder Scanner will become your read-only entry point for "
+            "inventory and storage review. Scanning is not implemented yet, "
+            "and FileForge will not touch personal files until you review and "
+            "confirm a plan in a later milestone."
         )
-        purpose.setObjectName("BodyLabel")
-        purpose.setWordWrap(True)
-        intro_layout.addWidget(purpose)
+        hero_body.setObjectName("BodyLabel")
+        hero_body.setWordWrap(True)
+        hero_layout.addWidget(hero_body)
+
+        actions = QHBoxLayout()
+        actions.setSpacing(12)
+        actions.setContentsMargins(0, 4, 0, 0)
 
         self.open_scanner_button = QPushButton("Open Folder Scanner")
+        self.open_scanner_button.setObjectName("PrimaryButton")
+        self.open_scanner_button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.open_scanner_button.setToolTip("Go to the Folder Scanner page (Ctrl+2)")
+        self.open_scanner_button.setDefault(True)
+        self.open_scanner_button.setAutoDefault(True)
         self.open_scanner_button.clicked.connect(self.open_scanner_requested.emit)
-        intro_layout.addWidget(self.open_scanner_button)
-        layout.addWidget(intro)
+        actions.addWidget(self.open_scanner_button)
+        actions.addStretch(1)
+        hero_layout.addLayout(actions)
+        layout.addWidget(hero)
 
         safety = QFrame()
         safety.setObjectName("SectionCard")
         safety_layout = QVBoxLayout(safety)
-        safety_layout.setContentsMargins(20, 20, 20, 20)
-        safety_layout.setSpacing(8)
+        safety_layout.setContentsMargins(24, 22, 24, 22)
+        safety_layout.setSpacing(10)
 
-        safety_title = QLabel("Safety principles")
+        safety_kicker = QLabel("Safety overview")
+        safety_kicker.setObjectName("SectionKicker")
+        safety_layout.addWidget(safety_kicker)
+
+        safety_title = QLabel("Built for careful file work")
         safety_title.setObjectName("EmptyStateTitle")
         safety_layout.addWidget(safety_title)
 
-        for index, principle in enumerate(SAFETY_PRINCIPLES, start=1):
-            item = QLabel(f"{index}. {principle}")
-            item.setObjectName("MutedLabel")
-            item.setWordWrap(True)
-            safety_layout.addWidget(item)
+        safety_intro = QLabel(
+            "FileForge keeps destructive actions behind preview and confirmation. "
+            "The full safety checklist lives in the project documentation."
+        )
+        safety_intro.setObjectName("BodyLabel")
+        safety_intro.setWordWrap(True)
+        safety_layout.addWidget(safety_intro)
+
+        for highlight in SAFETY_HIGHLIGHTS:
+            row = QLabel(f"•  {highlight}")
+            row.setObjectName("MutedLabel")
+            row.setWordWrap(True)
+            safety_layout.addWidget(row)
 
         layout.addWidget(safety)
+
+        note = QLabel(
+            "No fabricated storage metrics are shown here. Feature pages that "
+            "are still in progress use clear empty states instead of fake data."
+        )
+        note.setObjectName("MutedLabel")
+        note.setWordWrap(True)
+        layout.addWidget(note)
         layout.addStretch(1)

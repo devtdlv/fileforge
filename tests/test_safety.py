@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from fileforge.core.safety import SAFETY_PRINCIPLES, format_safety_principles
+from fileforge.core.safety import (
+    SAFETY_HIGHLIGHTS,
+    SAFETY_PRINCIPLES,
+    format_safety_principles,
+)
 
 
 def test_safety_principles_cover_required_rules() -> None:
@@ -16,6 +20,14 @@ def test_safety_principles_cover_required_rules() -> None:
     assert "undo" in text
     assert "scanning" in text or "preview" in text
     assert "temporary" in text
+
+
+def test_safety_highlights_are_concise() -> None:
+    assert 3 <= len(SAFETY_HIGHLIGHTS) <= 5
+    joined = " ".join(SAFETY_HIGHLIGHTS).lower()
+    assert "preview" in joined
+    assert "confirmation" in joined or "confirm" in joined
+    assert "undo" in joined
 
 
 def test_format_safety_principles_is_numbered() -> None:

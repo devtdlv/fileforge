@@ -4,9 +4,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import QSize, Qt, Signal
 from PySide6.QtGui import QKeySequence, QShortcut
-from PySide6.QtWidgets import QLabel, QListWidget, QListWidgetItem, QVBoxLayout, QWidget
+from PySide6.QtWidgets import (
+    QApplication,
+    QLabel,
+    QListWidget,
+    QListWidgetItem,
+    QStyle,
+    QVBoxLayout,
+    QWidget,
+)
 
 from fileforge import __app_name__
 
@@ -18,16 +26,47 @@ class NavItem:
     page_id: str
     label: str
     shortcut: str | None = None
+    icon: QStyle.StandardPixmap | None = None
 
 
 NAV_ITEMS: tuple[NavItem, ...] = (
-    NavItem("dashboard", "Dashboard", "Ctrl+1"),
-    NavItem("scanner", "Folder Scanner", "Ctrl+2"),
-    NavItem("organizer", "Organizer", "Ctrl+3"),
-    NavItem("duplicates", "Duplicate Finder", "Ctrl+4"),
-    NavItem("renamer", "Bulk Renamer", "Ctrl+5"),
-    NavItem("history", "Operation History", "Ctrl+6"),
-    NavItem("settings", "Settings", "Ctrl+7"),
+    NavItem("dashboard", "Dashboard", "Ctrl+1", QStyle.StandardPixmap.SP_DirHomeIcon),
+    NavItem(
+        "scanner",
+        "Folder Scanner",
+        "Ctrl+2",
+        QStyle.StandardPixmap.SP_DirIcon,
+    ),
+    NavItem(
+        "organizer",
+        "Organizer",
+        "Ctrl+3",
+        QStyle.StandardPixmap.SP_FileDialogContentsView,
+    ),
+    NavItem(
+        "duplicates",
+        "Duplicate Finder",
+        "Ctrl+4",
+        QStyle.StandardPixmap.SP_FileDialogDetailedView,
+    ),
+    NavItem(
+        "renamer",
+        "Bulk Renamer",
+        "Ctrl+5",
+        QStyle.StandardPixmap.SP_FileDialogListView,
+    ),
+    NavItem(
+        "history",
+        "Operation History",
+        "Ctrl+6",
+        QStyle.StandardPixmap.SP_BrowserReload,
+    ),
+    NavItem(
+        "settings",
+        "Settings",
+        "Ctrl+7",
+        QStyle.StandardPixmap.SP_FileDialogInfoView,
+    ),
 )
 
 
@@ -59,8 +98,12 @@ class Sidebar(QWidget):
         self._list.setSelectionMode(QListWidget.SelectionMode.SingleSelection)
         self._list.setVerticalScrollMode(QListWidget.ScrollMode.ScrollPerPixel)
         self._list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._list.setIconSize(QSize(18, 18))
+        self._list.setSpacing(2)
         self._list.setAccessibleName("Main navigation")
+        self._list.setUniformItemSizes(True)
 
+        style = QApplication.style()
         self._index_by_id: dict[str, int] = {}
         for index, item in enumerate(NAV_ITEMS):
             list_item = QListWidgetItem(item.label)
@@ -68,6 +111,8 @@ class Sidebar(QWidget):
             list_item.setToolTip(
                 f"{item.label}" + (f" ({item.shortcut})" if item.shortcut else "")
             )
+            if item.icon is not None and style is not None:
+                list_item.setIcon(style.standardIcon(item.icon))
             self._list.addItem(list_item)
             self._index_by_id[item.page_id] = index
             if item.shortcut:

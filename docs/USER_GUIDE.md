@@ -20,9 +20,9 @@ The window has:
 
 - A **sidebar** with FileForge branding and navigation
 - A **content area** for the selected page
-- A **status bar** showing the version and database path
+- A **status bar** showing the application version and the current page
 
-Minimum recommended size is 1024×640. The layout resizes within normal desktop constraints.
+Minimum recommended size is 1024×640. The layout resizes within normal desktop constraints. The full SQLite database path is shown on the Settings page, not in the status bar.
 
 ## Navigation
 
@@ -44,7 +44,7 @@ The sidebar list is keyboard-focusable. Selected items use a clear highlight; fo
 
 ### Dashboard
 
-Explains what FileForge is for and lists the safety principles. Use **Open Folder Scanner** to jump to the Folder Scanner page. No fake storage metrics are shown.
+Explains what FileForge is for, summarizes the safety approach, and offers a primary **Open Folder Scanner** action (also available via Ctrl+2). No fake storage metrics or fabricated activity are shown.
 
 ### Folder Scanner
 

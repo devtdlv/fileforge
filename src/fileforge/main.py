@@ -5,6 +5,8 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QGuiApplication
 from PySide6.QtWidgets import QApplication, QMessageBox
 
 from fileforge import __app_name__, __version__
@@ -13,8 +15,22 @@ from fileforge.database.settings_store import SettingsStore
 from fileforge.ui.windows.main_window import MainWindow
 
 
+def configure_qt_before_app() -> None:
+    """Apply Qt settings that must precede QGuiApplication construction.
+
+    On Windows, Qt may emit a high-DPI rounding-policy warning if this is not
+    configured before the application instance exists.
+    """
+    if QGuiApplication.instance() is not None:
+        return
+    QGuiApplication.setHighDpiScaleFactorRoundingPolicy(
+        Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
+    )
+
+
 def create_application(argv: list[str] | None = None) -> QApplication:
     """Create the Qt application instance with basic metadata."""
+    configure_qt_before_app()
     app = QApplication(argv if argv is not None else sys.argv)
     app.setApplicationName(__app_name__)
     app.setApplicationVersion(__version__)

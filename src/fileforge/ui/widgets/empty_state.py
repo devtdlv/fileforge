@@ -21,8 +21,8 @@ class EmptyStateWidget(QFrame):
         self.setFrameShape(QFrame.Shape.StyledPanel)
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(24, 24, 24, 24)
-        layout.setSpacing(12)
+        layout.setContentsMargins(28, 28, 28, 28)
+        layout.setSpacing(10)
 
         badge_label = QLabel(badge)
         badge_label.setObjectName("BadgeLabel")
@@ -37,6 +37,7 @@ class EmptyStateWidget(QFrame):
         body_label = QLabel(body)
         body_label.setObjectName("EmptyStateBody")
         body_label.setWordWrap(True)
+        body_label.setMaximumWidth(640)
         layout.addWidget(body_label)
 
         layout.addStretch(1)

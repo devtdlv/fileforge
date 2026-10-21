@@ -30,30 +30,30 @@ QMainWindow {
     font-size: 20px;
     font-weight: 700;
     letter-spacing: 0.4px;
-    padding: 20px 18px 8px 18px;
+    padding: 22px 18px 6px 18px;
 }
 
 #SidebarTagline {
     background-color: transparent;
     color: #9AA5B1;
     font-size: 11px;
-    padding: 0 18px 16px 18px;
+    padding: 0 18px 18px 18px;
 }
 
 QListWidget#NavList {
     background-color: transparent;
     border: none;
     outline: none;
-    padding: 4px 10px 16px 10px;
+    padding: 4px 12px 18px 12px;
     color: #D9E2EC;
 }
 
 QListWidget#NavList::item {
     background-color: transparent;
-    border: none;
+    border: 1px solid transparent;
     border-radius: 8px;
-    padding: 10px 12px;
-    margin: 2px 0;
+    padding: 11px 12px;
+    margin: 3px 0;
     color: #D9E2EC;
 }
 
@@ -66,11 +66,17 @@ QListWidget#NavList::item:selected {
     background-color: #2F6FED;
     color: #FFFFFF;
     font-weight: 600;
+    border: 1px solid #5B8DEF;
 }
 
 QListWidget#NavList::item:focus {
     border: 2px solid #7EB6FF;
-    padding: 8px 10px;
+    padding: 10px 11px;
+}
+
+QListWidget#NavList::item:selected:focus {
+    border: 2px solid #B6D4FE;
+    padding: 10px 11px;
 }
 
 /* ---------- Content area ---------- */
@@ -81,7 +87,7 @@ QListWidget#NavList::item:focus {
 #PageTitle {
     background-color: transparent;
     color: #102A43;
-    font-size: 24px;
+    font-size: 26px;
     font-weight: 700;
     padding: 0;
     margin: 0;
@@ -90,15 +96,40 @@ QListWidget#NavList::item:focus {
 #PageSubtitle {
     background-color: transparent;
     color: #486581;
-    font-size: 13px;
+    font-size: 14px;
+    line-height: 1.4;
     padding: 0;
     margin: 0;
+    max-width: 720px;
 }
 
 #SectionCard {
     background-color: #FFFFFF;
     border: 1px solid #D9E2EC;
     border-radius: 10px;
+}
+
+#HeroCard {
+    background-color: #FFFFFF;
+    border: 1px solid #D9E2EC;
+    border-left: 4px solid #2F6FED;
+    border-radius: 10px;
+}
+
+#SectionKicker {
+    background-color: transparent;
+    color: #2F6FED;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+}
+
+#HeroTitle {
+    background-color: transparent;
+    color: #102A43;
+    font-size: 18px;
+    font-weight: 700;
 }
 
 #MutedLabel {
@@ -131,6 +162,12 @@ QPushButton {
     min-height: 20px;
 }
 
+QPushButton#PrimaryButton {
+    padding: 11px 20px;
+    font-size: 14px;
+    min-height: 22px;
+}
+
 QPushButton:hover {
     background-color: #2662D9;
 }
@@ -148,6 +185,10 @@ QPushButton:focus {
     outline: none;
     border: 2px solid #102A43;
     padding: 7px 14px;
+}
+
+QPushButton#PrimaryButton:focus {
+    padding: 9px 18px;
 }
 
 QPushButton#SecondaryButton {
