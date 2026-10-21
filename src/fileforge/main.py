@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
@@ -14,18 +15,57 @@ from fileforge.database.connection import DatabaseError, DatabaseManager
 from fileforge.database.settings_store import SettingsStore
 from fileforge.ui.windows.main_window import MainWindow
 
+_POLICY_BY_NAME: dict[str, Qt.HighDpiScaleFactorRoundingPolicy] = {
+    "round": Qt.HighDpiScaleFactorRoundingPolicy.Round,
+    "ceil": Qt.HighDpiScaleFactorRoundingPolicy.Ceil,
+    "floor": Qt.HighDpiScaleFactorRoundingPolicy.Floor,
+    "roundpreferfloor": Qt.HighDpiScaleFactorRoundingPolicy.RoundPreferFloor,
+    "passthrough": Qt.HighDpiScaleFactorRoundingPolicy.PassThrough,
+}
+
+
+def _parse_scale_factor_rounding_policy(
+    value: str,
+) -> Qt.HighDpiScaleFactorRoundingPolicy | None:
+    """Map a QT_SCALE_FACTOR_ROUNDING_POLICY value to a Qt enum member."""
+    return _POLICY_BY_NAME.get(value.strip().lower())
+
 
 def configure_qt_before_app() -> None:
-    """Apply Qt settings that must precede QGuiApplication construction.
+    """Prepare Qt settings that must precede QGuiApplication construction.
 
-    On Windows, Qt may emit a high-DPI rounding-policy warning if this is not
-    configured before the application instance exists.
+    Qt 6.9 can emit:
+
+        setHighDpiScaleFactorRoundingPolicy must be called before creating
+        the QGuiApplication instance
+
+    when ``QT_SCALE_FACTOR_ROUNDING_POLICY`` is set in the process environment.
+    Qt applies that variable by calling ``setHighDpiScaleFactorRoundingPolicy``
+    after the application object already exists (QTBUG-132430, fixed upstream
+    in Qt 6.10). Cursor and other host environments often set this variable.
+
+    FileForge therefore:
+    1. Reads and removes ``QT_SCALE_FACTOR_ROUNDING_POLICY`` from ``os.environ``
+    2. Applies a recognized policy via the public API before constructing
+       ``QApplication``
+
+    Calling ``setHighDpiScaleFactorRoundingPolicy`` alone does not prevent the
+    warning while the environment variable remains set.
     """
+    # Always remove the variable first. Leaving it set makes Qt 6.9 warn during
+    # QApplication construction even if the API was already called.
+    raw_policy = os.environ.pop("QT_SCALE_FACTOR_ROUNDING_POLICY", None)
+
     if QGuiApplication.instance() is not None:
+        # Too late to change the policy safely; avoid calling the setter.
         return
-    QGuiApplication.setHighDpiScaleFactorRoundingPolicy(
-        Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
-    )
+
+    if raw_policy is None:
+        return
+
+    policy = _parse_scale_factor_rounding_policy(raw_policy)
+    if policy is not None:
+        QGuiApplication.setHighDpiScaleFactorRoundingPolicy(policy)
 
 
 def create_application(argv: list[str] | None = None) -> QApplication:
@@ -73,6 +113,17 @@ def run(argv: list[str] | None = None) -> int:
         return 1
 
     window.show()
+
+    # Optional smoke-exit for automated verification of ``python -m fileforge``.
+    if os.environ.get("FILEFORGE_SMOKE_EXIT") == "1":
+        from PySide6.QtCore import QTimer
+
+        from fileforge.ui.pages.settings_page import SETTING_CONFIRM_EXIT
+
+        # Avoid a blocking exit-confirmation dialog in non-interactive smoke runs.
+        SettingsStore(database).set(SETTING_CONFIRM_EXIT, "0")
+        QTimer.singleShot(100, app.quit)
+
     try:
         return app.exec()
     finally:
