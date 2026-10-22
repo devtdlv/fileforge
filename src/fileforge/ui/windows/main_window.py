@@ -84,7 +84,7 @@ class MainWindow(QMainWindow):
             ("scanner", scanner),
             ("organizer", OrganizerPage(self._database)),
             ("duplicates", DuplicatesPage()),
-            ("renamer", RenamerPage()),
+            ("renamer", RenamerPage(self._database)),
             ("history", HistoryPage()),
             ("settings", SettingsPage(self._settings, Path(self._database.path))),
         ]
@@ -177,6 +177,21 @@ class MainWindow(QMainWindow):
                 event.ignore()
                 return
             duplicates.cancel_active_scan()
+
+        renamer = self._pages.get("renamer")
+        if isinstance(renamer, RenamerPage) and renamer.is_busy:
+            answer = QMessageBox.question(
+                self,
+                "Rename in progress",
+                "A bulk rename load, preview, or apply is still running. "
+                "Cancel it and exit FileForge?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
+            )
+            if answer != QMessageBox.StandardButton.Yes:
+                event.ignore()
+                return
+            renamer.cancel_active_work()
 
         confirm = self._settings.get(SETTING_CONFIRM_EXIT, "1")
         if confirm == "0":

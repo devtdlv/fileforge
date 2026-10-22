@@ -299,14 +299,26 @@ class DuplicatesPage(QWidget):
                     or "No two distinct files shared identical content.",
                 )
 
-        self.summary_label.setText(
-            f"{result.message}  |  Files scanned: {result.files_scanned}  |  "
-            f"Groups: {result.group_count}  |  Paths in groups: {result.duplicate_copy_count}  |  "
-            f"Theoretical potential savings: {format_byte_size(result.potential_savings_bytes)}  |  "
+        status_text = {
+            DuplicateStatus.COMPLETED: "Scan completed",
+            DuplicateStatus.PARTIAL: "Scan completed with issues",
+            DuplicateStatus.CANCELLED: "Scan cancelled",
+            DuplicateStatus.FAILED: "Scan failed",
+            DuplicateStatus.EMPTY: "No duplicates found",
+        }.get(result.status, result.status.name.replace("_", " ").title())
+        self.status_label.setText(status_text)
+        stats = (
+            f"Files scanned: {result.files_scanned}  |  "
+            f"Groups: {result.group_count}  |  "
+            f"Paths in groups: {result.duplicate_copy_count}  |  "
+            f"Theoretical potential savings: "
+            f"{format_byte_size(result.potential_savings_bytes)}  |  "
             f"Issues: {len(result.errors)}"
         )
+        if result.status in {DuplicateStatus.PARTIAL, DuplicateStatus.FAILED} and result.message:
+            stats = f"{stats}  |  Detail: {result.message}"
+        self.summary_label.setText(stats)
         self.summary_label.setVisible(True)
-        self.status_label.setText(result.message)
 
         if result.groups:
             self.groups_table.selectRow(0)

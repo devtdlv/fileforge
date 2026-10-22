@@ -1,6 +1,6 @@
 # FileForge User Guide
 
-This guide describes **Milestone 4**: the desktop shell, read-only Folder Scanner, preview-first Organizer, and read-only Duplicate Finder. Duplicate deletion, bulk renaming, and undo are not available yet.
+This guide describes **Milestone 5**: the desktop shell, Folder Scanner, Organizer, Duplicate Finder, and preview-first Bulk Renamer. Undo and Operation History browsing are not available yet.
 
 ## Starting FileForge
 
@@ -22,101 +22,94 @@ On first launch, FileForge creates a local SQLite database under `%LOCALAPPDATA%
 | Ctrl+6 | Operation History |
 | Ctrl+7 | Settings |
 
+## Bulk Renamer
+
+Rename many files safely with a mandatory preview.
+
+### Supported rules
+
+| Rule | Behavior |
+|------|----------|
+| Prefix | Inserted at the start of the stem |
+| Suffix | Inserted at the end of the stem (before the extension) |
+| Search / replace | Literal text replacement on the stem only (no regular expressions) |
+| Sequential numbering | Appends a padded number with a configurable separator |
+| Case | Lower / upper / title case applied to the **stem only** |
+
+### Rule application order
+
+1. Search / replace
+2. Prefix
+3. Suffix
+4. Sequential numbering
+5. Case transformation (stem only)
+
+Example: `IMG_001.JPG` with replace `IMG`→`Holiday`, suffix `_edited`, lowercase stem → `holiday_001_edited.JPG`.
+
+### Extension policy
+
+Extensions are preserved by default, including their original casing (`photo.JPG` stays `.JPG`). Multi-dot names use Python’s final-suffix rule (`archive.tar.gz` → stem `archive.tar`, ext `.gz`). Extensionless files and dotfiles are supported.
+
+Invalid Windows names (illegal characters, reserved device names, trailing dots/spaces, empty names, excessive length) are shown as **Invalid** in the preview. FileForge does not silently sanitize names into something unexpected.
+
+### How to select files
+
+1. Choose a folder and optionally include subfolders.
+2. Click **Load Files**.
+3. Check individual files, or use **Select All** / **Clear Selection**.
+4. The selection count updates as you change checkboxes.
+5. Directories are never renamed. Symbolic links are skipped.
+
+### How to preview
+
+Click **Preview Renames**. The table shows original name, proposed name, relative folder, status, and notes. Hover a row for absolute paths. Changing rules or selection invalidates the preview; regenerate before applying.
+
+Statuses include Ready, Unchanged, Conflict, Invalid, Missing, and (at execution) Stale / Success / Failed / Cancelled.
+
+### Interpreting conflicts
+
+Conflicts appear when:
+
+- Two selected files would share the same target name
+- The target already exists and is not being renamed away
+- Case-insensitive collisions would overwrite another file
+- The proposed name is illegal on Windows
+
+FileForge never auto-appends `(1)` or similar to “fix” collisions.
+
+### How to apply safely
+
+1. Ensure the preview status is ready (Apply enabled).
+2. Click **Apply Renames** and confirm the dialog.
+3. Watch progress; **Cancel** stops between safe boundaries.
+4. Outcomes are written to the SQLite operation journal (`bulk_rename`).
+
+Undo is **not** implemented. Renames are not claimed to be atomic across the whole batch. Chains and case-only renames use temporary names in the same folder, then finalize; leftover temps should not remain after a successful run.
+
+### Limitations
+
+- No undo / reverse from FileForge
+- No regular expressions
+- No intentional extension-changing mode
+- Directories are not renamed
+- Global rules apply to every selected file (per-file rule sets are not offered)
+
 ## Folder Scanner
 
 Choose a folder, optionally include subfolders, and start a **read-only** metadata scan. Search and filter results. Cancel stops further traversal. Scanning never moves or deletes files.
 
 ## Duplicate Finder
 
-The Duplicate Finder identifies files with **identical content** using a staged algorithm. It is strictly read-only: FileForge never deletes, quarantines, moves, or renames duplicates.
-
-### How detection works
-
-1. Inventory the selected folder with the same scanner used elsewhere (no symlink/junction follow).
-2. Group files by size. Unique sizes are skipped (they cannot be content duplicates).
-3. Hash remaining candidates with SHA-256 in bounded chunks (not loaded entirely into memory).
-4. Group files only when full hashes match.
-5. Hard-linked paths that share the same physical file are counted carefully so potential savings are not overstated.
-
-File names are irrelevant: same name does not imply a duplicate, and different names do not imply uniqueness.
-
-### How to scan
-
-1. Open **Duplicate Finder** (Ctrl+4).
-2. Click **Choose Folder…** and select a directory you own or are allowed to inspect.
-3. Optionally uncheck **Include subfolders**.
-4. Click **Start Scan**.
-5. Watch progress counts (no invented percentages). Click **Cancel** to stop between hashing steps.
-
-### Interpreting results
-
-- **Duplicate groups** - each row is one content digest with two or more distinct physical copies.
-- **Member table** - selecting a group lists every path in that group (relative path shown; full path in the tooltip).
-- **SHA-256** - truncated in the table; full digest is available in the group tooltip.
-- **Theoretical potential savings** - `(unique physical copies - 1) × file size`. This is not reclaimed space. Nothing is deleted.
-- Identical content does **not** mean one copy is unnecessary or safe to remove.
-
-### Privacy and safety
-
-- No file names, hashes, or contents are transmitted over the network.
-- Scan results stay in memory for the session; they are not written to the SQLite database.
-- The **Delete Selected Duplicates** button remains disabled by design.
-- Closing the app while a scan runs prompts to cancel and exit.
-
-### Limitations
-
-- Deletion, quarantine, and automatic cleanup are not implemented
-- Very large trees keep results in memory
-- Permission errors and files that change mid-hash are reported and excluded
-- Potential savings is an estimate only
+Identifies files with identical content using size filtering and SHA-256. Strictly read-only: no delete, quarantine, move, or rename. Potential savings are theoretical. Completion status and statistics are shown as separate lines (status above, counts below).
 
 ## Organizer
 
-The Organizer relocates files using a preview-first workflow.
-
-### Modes
-
-- **By file extension** - for example `Destination\jpg\photo.jpg`
-- **By file category** - Images, Documents, Videos, Audio, Archives, Other
-- **By modified year/month** - `Destination\YYYY\MM\filename`
-
-### Workflow
-
-1. Choose **Source Folder…** and **Destination Folder…**
-2. Select a mode and whether to include subfolders
-3. Click **Preview Plan**
-4. Review every proposed move in the table (relative source/destination paths,
-   rule, notes). Hover a path cell for the full absolute path.
-5. If conflicts exist, Apply stays disabled
-6. Click **Apply Organization Plan** and confirm the dialog
-7. Watch progress; click **Cancel** to stop between remaining moves
-
-### Safety protections
-
-- Preview never modifies the filesystem
-- Apply requires an explicit confirmation dialog
-- Existing destination files are never overwritten
-- Case-insensitive destination collisions block Apply
-- Files that change after preview are rejected at execution time
-- Symbolic links and directory junctions are not followed
-- Cross-filesystem moves are refused (no copy-and-delete fallback)
-- Successful and failed moves are written to the SQLite journal
-
-### Journal behavior
-
-Each apply creates a batch with per-file entries (`pending` → `success`/`failed`). Undo is **not** implemented in this milestone. If journaling cannot start, FileForge refuses to move files.
-
-### Limitations
-
-- Only files are moved; empty source folders are left in place
-- Undo / reverse is not available yet
-- Operation History UI does not yet list journal batches
-- Very large trees keep the plan in memory
+Preview-first file moves by extension, category, or modified year/month. Apply requires confirmation. Overwrites are refused. Moves are journaled. Undo is not available.
 
 ## Other pages
 
-Bulk Renamer and Operation History remain placeholders. Settings stores display name, exit confirmation, and shows the database path.
+Operation History remains a placeholder. Settings stores display name, exit confirmation, and shows the database path.
 
 ## Closing the application
 
-If a folder scan, organization job, or duplicate scan is running, FileForge asks before cancelling and exiting.
+If a folder scan, organization job, duplicate scan, or rename job is running, FileForge asks before cancelling and exiting.

@@ -97,10 +97,9 @@ QListWidget#NavList::item:selected:focus {
     background-color: transparent;
     color: #486581;
     font-size: 14px;
-    line-height: 1.4;
-    padding: 0;
+    line-height: 1.45;
+    padding: 0 0 4px 0;
     margin: 0;
-    max-width: 720px;
 }
 
 #SectionCard {

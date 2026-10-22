@@ -6,7 +6,7 @@ Built with Python 3.13 and PySide6. All data stays on your machine. No cloud ser
 
 ## Current status
 
-**Milestone 4 (Professional Duplicate Finder)** builds on the shell, Folder Scanner, and Organizer:
+**Milestone 5 (Safe Bulk Renamer)** builds on the shell, Folder Scanner, Organizer, and Duplicate Finder:
 
 - Desktop application window with sidebar navigation
 - Seven content pages (Dashboard through Settings)
@@ -14,11 +14,12 @@ Built with Python 3.13 and PySide6. All data stays on your machine. No cloud ser
 - **Folder Scanner**: read-only inventory with filter/sort/cancel
 - **Organizer**: preview-first moves by extension, category, or modified year/month
 - **Duplicate Finder**: staged size filtering + SHA-256 grouping (strictly read-only)
-- Background workers for scanning, organization, and duplicate detection
+- **Bulk Renamer**: preview-first renames with conflict detection and journaling
+- Background workers for scanning, organization, duplicates, and renaming
 - Conflict detection with no silent overwrites
 - Automated tests and Ruff lint configuration
 
-**Not yet implemented:** duplicate deletion/cleanup, bulk renaming, undo/recovery UI, scan inventory persistence across restarts, and PyInstaller packaging.
+**Not yet implemented:** duplicate deletion/cleanup, undo/recovery UI, Operation History browsing, scan inventory persistence across restarts, and PyInstaller packaging.
 
 ## Planned features
 
@@ -29,7 +30,7 @@ Built with Python 3.13 and PySide6. All data stays on your machine. No cloud ser
 | Folder Scanner inventory (read-only) | Available |
 | Rules-based Organizer with preview | Available |
 | Duplicate Finder (detection only, no deletion) | Available |
-| Bulk Renamer with conflict checks | Planned |
+| Bulk Renamer with conflict checks | Available |
 | Operation History and safe undo | Planned |
 | Storage review insights | Planned |
 | PyInstaller packaging | Planned |
@@ -74,33 +75,32 @@ Expected: `Python 3.13.x`
 .\.venv\Scripts\python.exe -m fileforge
 ```
 
+## Bulk Renamer quick start
+
+1. Open **Bulk Renamer** (Ctrl+5).
+2. Choose a folder, optionally include subfolders, and click **Load Files**.
+3. Select the files to rename (Select All / Clear Selection).
+4. Configure rules (prefix, suffix, search/replace, numbering, case).
+5. Click **Preview Renames**. Preview never modifies files.
+6. Resolve any conflicts shown in the preview table.
+7. Click **Apply Renames** and confirm the dialog.
+
+Rule order: search/replace → prefix → suffix → numbering → case (stem only). Extensions are preserved by default. Undo is not available.
+
 ## Duplicate Finder quick start
 
 1. Open **Duplicate Finder** (Ctrl+4).
-2. Choose a folder and optionally include subfolders.
-3. Click **Start Scan**. Detection is read-only and never deletes files.
-4. Review duplicate groups, member paths, SHA-256 digests, and theoretical potential savings.
-5. Use **Cancel** to stop an in-progress scan.
-
-Potential savings means `(unique physical copies - 1) × file size`. Identical content does not mean a copy is safe to remove. Deletion is not available.
+2. Choose a folder and start a scan. Detection is read-only.
 
 ## Organizer quick start
 
 1. Open **Organizer** (Ctrl+3).
-2. Choose a **source** folder and a **destination** folder.
-3. Select a mode: extension, category, or modified year/month.
-4. Click **Preview Plan**. Preview never modifies files.
-5. Review the before/after table. Conflicts disable Apply.
-6. Click **Apply Organization Plan** and confirm the dialog.
-7. Use **Cancel** to stop an in-progress preview or apply between moves.
-
-Moves are journaled in SQLite. Undo is not implemented yet.
+2. Choose source and destination folders, preview, then confirm apply.
 
 ## Folder Scanner quick start
 
 1. Open **Folder Scanner** (Ctrl+2).
 2. Choose a folder and click **Start Scan**.
-3. Filter/sort results as needed. Scanning is read-only.
 
 ## Tests and lint
 
@@ -125,8 +125,8 @@ Moves are journaled in SQLite. Undo is not implemented yet.
 1. **Milestone 1** - Project foundation, UI shell, SQLite, tests, docs
 2. **Milestone 2** - Folder Scanner and read-only inventory
 3. **Milestone 3** - Organizer with preview and confirmed apply
-4. **Milestone 4** - Duplicate Finder (detection only) *(current)*
-5. **Milestone 5** - Bulk Renamer with conflict handling
+4. **Milestone 4** - Duplicate Finder (detection only)
+5. **Milestone 5** - Bulk Renamer (preview-first) *(current)*
 6. **Milestone 6** - Operation History and safe undo
 7. **Milestone 7** - Packaging, polish, and portfolio screenshots
 

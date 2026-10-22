@@ -10,6 +10,7 @@ FileForge is a local-first Windows desktop app with:
 - A reusable read-only folder scanner
 - A preview-first organizer with fail-closed execution and journaling
 - A read-only duplicate detection engine (size filter + SHA-256)
+- A preview-first bulk renamer with conflict detection and journaling
 
 ## Package layout
 
@@ -23,16 +24,14 @@ src/fileforge/
     journal.py          # operation batches/entries
   services/
     scanner/            # read-only inventory engine
-    organizer/
-      models.py
-      categories.py
-      paths.py
-      planner.py        # dry-run plans
-      executor.py       # safe moves + journal hooks
-    duplicates/
-      models.py         # groups, progress, status
-      hasher.py         # chunked SHA-256 + change detection
-      engine.py         # DuplicateFinder (no PySide6)
+    organizer/          # preview + safe moves
+    duplicates/         # size + SHA-256 grouping
+    renamer/
+      models.py         # rules, items, plan, execution result
+      names.py          # stem/extension policy + Windows validation
+      rules.py          # ordered rule application
+      planner.py        # dry-run preview + collisions
+      executor.py       # staged renames + journal hooks
   ui/
     models/             # Qt table models
     workers/            # QThread controllers
@@ -40,30 +39,32 @@ src/fileforge/
     windows/
 ```
 
+## Bulk renamer design
+
+1. `RenamePlanner.inventory` reuses `FolderScanner` (no symlink/junction follow; dedupe by device/inode).
+2. `RenamePlanner.build_plan` applies rules in fixed order to selected files only and classifies Ready / Unchanged / Conflict / Invalid / Missing.
+3. Collisions are case-insensitive within each parent directory. Occupied destinations block apply unless the occupant is another selected file that is itself renaming away (chain).
+4. `RenameExecutor` revalidates fingerprints before each rename. Independent renames use `os.rename` (fails if destination exists on Windows). Chains, swaps, and case-only renames use a two-phase temp-name strategy in the same directory, then finalize. Mid-stage cancellation is not honored once a staged directory group starts; rollback restores temps to original names when possible.
+5. Successful and failed outcomes are journaled as `operation_type=bulk_rename` / entry `rename` via the shared `OperationJournal`. Schema v2 tables are reused; no destructive migration.
+6. Renames are not filesystem transactions. Partial batches are possible; undo is not implemented.
+
+### Rule order
+
+`search/replace → prefix → suffix → numbering → case (stem only)`
+
+### Extension policy
+
+Final `Path` suffix is preserved (including casing). Stem transforms never rewrite the extension unless a future explicit feature is added.
+
 ## Duplicate detection design
 
-1. `DuplicateFinder` reuses `FolderScanner` for metadata collection (no symlink/junction follow).
-2. Files are grouped by size. Sizes with fewer than two distinct `(device, inode)` identities are skipped.
-3. Each physical file is hashed once with chunked SHA-256. Size/mtime are checked before and after reading; mismatches exclude the file.
-4. Groups require matching digests and at least two unique physical identities.
-5. Potential savings = `(unique_physical_count - 1) × size`. Hard-linked paths share one physical identity so savings are not overstated.
-6. Results are session-only in memory. Nothing is uploaded or persisted to SQLite for duplicate scans.
-7. The UI worker (`DuplicateWorkerController`) mirrors scanner/organizer conventions: progress/finished/failed signals, cooperative cancel, safe thread cleanup. Widgets are never updated from the worker thread.
+Unchanged from Milestone 4: size filter → chunked SHA-256 → hard-link-aware savings. UI refinements separate status text from statistics so completion messaging is not duplicated. Page headers allow subtitle wrapping without clipping.
 
 ## Organizer design
 
 1. `OrganizePlanner` uses `FolderScanner` to list files, then maps each file to a destination by mode.
-2. Conflicts (existing paths, case-insensitive collisions, invalid scope) mark the plan `BLOCKED`.
-3. `OrganizeExecutor` re-validates each file immediately before `Path.rename`, verifies outcomes, then journals success/failure.
-4. UI workers never touch widgets from background threads; results cross via Qt signals.
-
-### Organization modes
-
-| Mode | Destination layout |
-|------|--------------------|
-| `EXTENSION` | `{dest}/{ext}/{filename}` |
-| `CATEGORY` | `{dest}/{Images\|Documents\|...}/{filename}` |
-| `YEAR_MONTH` | `{dest}/{YYYY}/{MM}/{filename}` |
+2. Conflicts mark the plan `BLOCKED`.
+3. `OrganizeExecutor` re-validates before `Path.rename`, refuses overwrites, journals outcomes.
 
 ## Database schema (v2)
 
@@ -72,12 +73,12 @@ src/fileforge/
 - `operation_batches` (batch id, roots, mode, status)
 - `operation_entries` (per-file source/destination/status/error)
 
-Journal writes happen around verified filesystem outcomes. Undo is not implemented. Duplicate Finder does not write to these tables.
+Organizer writes `organize_move`. Renamer writes `bulk_rename`. Duplicate Finder does not write journal rows.
 
 ## Safety boundaries
 
-See `fileforge.core.safety`. Scanning, duplicate detection, and organizer preview are read-only. Apply requires confirmation, refuses overwrites, and fails closed when safety cannot be established (including journal initialization failure). Duplicate Finder never deletes or selects a “keeper” copy.
+See `fileforge.core.safety`. Scanning, duplicate detection, and all previews are read-only. Apply paths require confirmation, refuse overwrites, and fail closed when the journal cannot start. Undo is not available.
 
 ## Testing
 
-Temporary directories only. Coverage includes planner rules, preview immutability, execution, collisions, stale plans, cancellation, journaling, Organizer UI confirmation, SHA-256 correctness, size-based candidate filtering, duplicate grouping, hard-link-aware savings, and Duplicate Finder worker cleanup.
+Temporary directories only. Coverage includes renamer rules, planner conflicts, staged chain execution, journaling, renamer UI confirmation, duplicate messaging, and prior scanner/organizer suites.
