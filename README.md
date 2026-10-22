@@ -6,18 +6,19 @@ Built with Python 3.13 and PySide6. All data stays on your machine. No cloud ser
 
 ## Current status
 
-**Milestone 3 (Safe Smart Organizer)** builds on the shell and read-only Folder Scanner:
+**Milestone 4 (Professional Duplicate Finder)** builds on the shell, Folder Scanner, and Organizer:
 
 - Desktop application window with sidebar navigation
 - Seven content pages (Dashboard through Settings)
 - SQLite foundation with schema versioning, settings, and an operation journal
 - **Folder Scanner**: read-only inventory with filter/sort/cancel
 - **Organizer**: preview-first moves by extension, category, or modified year/month
-- Background workers for scanning, preview, and apply
+- **Duplicate Finder**: staged size filtering + SHA-256 grouping (strictly read-only)
+- Background workers for scanning, organization, and duplicate detection
 - Conflict detection with no silent overwrites
 - Automated tests and Ruff lint configuration
 
-**Not yet implemented:** duplicate detection/deletion, bulk renaming, undo/recovery UI, scan inventory persistence across restarts, and PyInstaller packaging.
+**Not yet implemented:** duplicate deletion/cleanup, bulk renaming, undo/recovery UI, scan inventory persistence across restarts, and PyInstaller packaging.
 
 ## Planned features
 
@@ -27,7 +28,7 @@ Built with Python 3.13 and PySide6. All data stays on your machine. No cloud ser
 | Local SQLite settings and operation journal | Available |
 | Folder Scanner inventory (read-only) | Available |
 | Rules-based Organizer with preview | Available |
-| Duplicate Finder (no automatic deletion) | Planned |
+| Duplicate Finder (detection only, no deletion) | Available |
 | Bulk Renamer with conflict checks | Planned |
 | Operation History and safe undo | Planned |
 | Storage review insights | Planned |
@@ -73,6 +74,16 @@ Expected: `Python 3.13.x`
 .\.venv\Scripts\python.exe -m fileforge
 ```
 
+## Duplicate Finder quick start
+
+1. Open **Duplicate Finder** (Ctrl+4).
+2. Choose a folder and optionally include subfolders.
+3. Click **Start Scan**. Detection is read-only and never deletes files.
+4. Review duplicate groups, member paths, SHA-256 digests, and theoretical potential savings.
+5. Use **Cancel** to stop an in-progress scan.
+
+Potential savings means `(unique physical copies - 1) × file size`. Identical content does not mean a copy is safe to remove. Deletion is not available.
+
 ## Organizer quick start
 
 1. Open **Organizer** (Ctrl+3).
@@ -113,8 +124,8 @@ Moves are journaled in SQLite. Undo is not implemented yet.
 
 1. **Milestone 1** - Project foundation, UI shell, SQLite, tests, docs
 2. **Milestone 2** - Folder Scanner and read-only inventory
-3. **Milestone 3** - Organizer with preview and confirmed apply *(current)*
-4. **Milestone 4** - Duplicate Finder with explicit user decisions
+3. **Milestone 3** - Organizer with preview and confirmed apply
+4. **Milestone 4** - Duplicate Finder (detection only) *(current)*
 5. **Milestone 5** - Bulk Renamer with conflict handling
 6. **Milestone 6** - Operation History and safe undo
 7. **Milestone 7** - Packaging, polish, and portfolio screenshots

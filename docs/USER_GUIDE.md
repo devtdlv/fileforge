@@ -1,6 +1,6 @@
 # FileForge User Guide
 
-This guide describes **Milestone 3**: the desktop shell, read-only Folder Scanner, and preview-first Organizer. Duplicate removal, bulk renaming, and undo are not available yet.
+This guide describes **Milestone 4**: the desktop shell, read-only Folder Scanner, preview-first Organizer, and read-only Duplicate Finder. Duplicate deletion, bulk renaming, and undo are not available yet.
 
 ## Starting FileForge
 
@@ -25,6 +25,50 @@ On first launch, FileForge creates a local SQLite database under `%LOCALAPPDATA%
 ## Folder Scanner
 
 Choose a folder, optionally include subfolders, and start a **read-only** metadata scan. Search and filter results. Cancel stops further traversal. Scanning never moves or deletes files.
+
+## Duplicate Finder
+
+The Duplicate Finder identifies files with **identical content** using a staged algorithm. It is strictly read-only: FileForge never deletes, quarantines, moves, or renames duplicates.
+
+### How detection works
+
+1. Inventory the selected folder with the same scanner used elsewhere (no symlink/junction follow).
+2. Group files by size. Unique sizes are skipped (they cannot be content duplicates).
+3. Hash remaining candidates with SHA-256 in bounded chunks (not loaded entirely into memory).
+4. Group files only when full hashes match.
+5. Hard-linked paths that share the same physical file are counted carefully so potential savings are not overstated.
+
+File names are irrelevant: same name does not imply a duplicate, and different names do not imply uniqueness.
+
+### How to scan
+
+1. Open **Duplicate Finder** (Ctrl+4).
+2. Click **Choose Folder…** and select a directory you own or are allowed to inspect.
+3. Optionally uncheck **Include subfolders**.
+4. Click **Start Scan**.
+5. Watch progress counts (no invented percentages). Click **Cancel** to stop between hashing steps.
+
+### Interpreting results
+
+- **Duplicate groups** - each row is one content digest with two or more distinct physical copies.
+- **Member table** - selecting a group lists every path in that group (relative path shown; full path in the tooltip).
+- **SHA-256** - truncated in the table; full digest is available in the group tooltip.
+- **Theoretical potential savings** - `(unique physical copies - 1) × file size`. This is not reclaimed space. Nothing is deleted.
+- Identical content does **not** mean one copy is unnecessary or safe to remove.
+
+### Privacy and safety
+
+- No file names, hashes, or contents are transmitted over the network.
+- Scan results stay in memory for the session; they are not written to the SQLite database.
+- The **Delete Selected Duplicates** button remains disabled by design.
+- Closing the app while a scan runs prompts to cancel and exit.
+
+### Limitations
+
+- Deletion, quarantine, and automatic cleanup are not implemented
+- Very large trees keep results in memory
+- Permission errors and files that change mid-hash are reported and excluded
+- Potential savings is an estimate only
 
 ## Organizer
 
@@ -71,8 +115,8 @@ Each apply creates a batch with per-file entries (`pending` → `success`/`faile
 
 ## Other pages
 
-Duplicate Finder, Bulk Renamer, and undo remain placeholders with disabled actions. Settings still stores display name, exit confirmation, and shows the database path.
+Bulk Renamer and Operation History remain placeholders. Settings stores display name, exit confirmation, and shows the database path.
 
 ## Closing the application
 
-If a scan or organization job is running, FileForge asks before cancelling and exiting.
+If a folder scan, organization job, or duplicate scan is running, FileForge asks before cancelling and exiting.

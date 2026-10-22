@@ -164,6 +164,20 @@ class MainWindow(QMainWindow):
                 return
             organizer.cancel_active_work()
 
+        duplicates = self._pages.get("duplicates")
+        if isinstance(duplicates, DuplicatesPage) and duplicates.is_scanning:
+            answer = QMessageBox.question(
+                self,
+                "Duplicate scan in progress",
+                "A duplicate scan is still running. Cancel it and exit FileForge?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
+            )
+            if answer != QMessageBox.StandardButton.Yes:
+                event.ignore()
+                return
+            duplicates.cancel_active_scan()
+
         confirm = self._settings.get(SETTING_CONFIRM_EXIT, "1")
         if confirm == "0":
             event.accept()
