@@ -28,14 +28,14 @@ def main_window(qapp: QApplication, tmp_path: Path) -> MainWindow:
 
 def test_main_window_constructs(main_window: MainWindow) -> None:
     assert isinstance(main_window, MainWindow)
-    assert main_window.windowTitle().startswith("FileForge")
+    assert main_window.windowTitle().startswith("Junction")
     assert main_window.minimumWidth() >= 1024
     assert main_window.minimumHeight() >= 640
     assert QApplication.instance() is not None
     status = main_window.statusBar()
     assert status is not None
     message = status.currentMessage()
-    assert "FileForge v" in message
+    assert "Junction v" in message
     assert "fileforge.db" not in message.lower()
     assert str(main_window._database.path).lower() not in message.lower()
 
@@ -57,7 +57,11 @@ def test_dashboard_uses_concise_safety_overview(main_window: MainWindow) -> None
     dashboard = main_window._pages["dashboard"]
     texts = " ".join(label.text() for label in dashboard.findChildren(QLabel))
     assert "Safety overview" in texts
-    assert "Open Folder Scanner" in dashboard.open_scanner_button.text()
+    assert "Folder Scanner" in dashboard.open_scanner_button.text()
+    assert "Smart Organizer" in dashboard.open_organizer_button.text()
+    assert "Duplicate Finder" in dashboard.open_duplicates_button.text()
+    assert "Bulk Renamer" in dashboard.open_renamer_button.text()
+    assert "Operation History" in dashboard.open_history_button.text()
     for highlight in SAFETY_HIGHLIGHTS:
         assert highlight in texts
     assert SAFETY_PRINCIPLES[-1] not in texts
@@ -83,6 +87,25 @@ def test_dashboard_open_scanner_navigates(main_window: MainWindow, qtbot) -> Non
     dashboard = main_window._pages["dashboard"]
     qtbot.mouseClick(dashboard.open_scanner_button, Qt.MouseButton.LeftButton)
     assert main_window.current_page_id() == "scanner"
+
+
+@pytest.mark.parametrize(
+    ("button_attr", "page_id"),
+    [
+        ("open_scanner_button", "scanner"),
+        ("open_organizer_button", "organizer"),
+        ("open_duplicates_button", "duplicates"),
+        ("open_renamer_button", "renamer"),
+        ("open_history_button", "history"),
+    ],
+)
+def test_dashboard_shortcuts_navigate(
+    main_window: MainWindow, qtbot, button_attr: str, page_id: str
+) -> None:
+    dashboard = main_window._pages["dashboard"]
+    button = getattr(dashboard, button_attr)
+    qtbot.mouseClick(button, Qt.MouseButton.LeftButton)
+    assert main_window.current_page_id() == page_id
 
 
 def test_unfinished_actions_are_disabled(main_window: MainWindow) -> None:

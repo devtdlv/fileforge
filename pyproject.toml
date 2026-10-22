@@ -5,12 +5,12 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "fileforge"
 version = "0.1.0"
-description = "A local-first Windows desktop app for safe file organization, duplicate detection, and bulk renaming."
+description = "Junction: a local-first Windows desktop app for safe file organization, duplicate detection, and bulk renaming."
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.13"
 authors = [
-    { name = "FileForge Contributors" },
+    { name = "Junction Contributors" },
 ]
 keywords = ["desktop", "files", "organization", "duplicates", "rename", "pyside6"]
 classifiers = [
@@ -38,8 +38,8 @@ dev = [
 fileforge = "fileforge.main:run"
 
 [project.urls]
-Homepage = "https://github.com/example/fileforge"
-Documentation = "https://github.com/example/fileforge#readme"
+Homepage = "https://github.com/devtdlv/junction"
+Documentation = "https://github.com/devtdlv/junction#readme"
 
 [tool.setuptools.packages.find]
 where = ["src"]

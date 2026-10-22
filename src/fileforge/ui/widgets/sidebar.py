@@ -39,7 +39,7 @@ NAV_ITEMS: tuple[NavItem, ...] = (
     ),
     NavItem(
         "organizer",
-        "Organizer",
+        "Smart Organizer",
         "Ctrl+3",
         QStyle.StandardPixmap.SP_FileDialogContentsView,
     ),

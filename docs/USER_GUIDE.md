@@ -1,14 +1,18 @@
-# FileForge User Guide
+# Junction User Guide
 
-This guide describes **Milestone 6**: the desktop shell, Folder Scanner, Organizer, Duplicate Finder, Bulk Renamer, and read-only Operation History. Undo and restore are not available.
+This guide describes **Milestone 7**: the desktop shell, Folder Scanner, Smart Organizer, Duplicate Finder, Bulk Renamer, read-only Operation History, and polished Dashboard. Undo and restore are not available.
 
-## Starting FileForge
+## Starting Junction
 
 ```powershell
 .\.venv\Scripts\python.exe -m fileforge
 ```
 
-On first launch, FileForge creates a local SQLite database under `%LOCALAPPDATA%\FileForge\fileforge.db`.
+The Python package module remains `fileforge`. On first launch, Junction creates a local SQLite database under `%LOCALAPPDATA%\FileForge\fileforge.db` (legacy folder name preserved so existing operation history stays accessible).
+
+## Dashboard
+
+The Dashboard introduces Junction, shows journal-backed batch counts and recent Organizer/Renamer activity (when any exists), and provides shortcuts to each feature page. Folder Scanner and Duplicate Finder results are session-only and are not treated as persisted history.
 
 ## Navigation
 
@@ -16,7 +20,7 @@ On first launch, FileForge creates a local SQLite database under `%LOCALAPPDATA%
 |----------|------|
 | Ctrl+1 | Dashboard |
 | Ctrl+2 | Folder Scanner |
-| Ctrl+3 | Organizer |
+| Ctrl+3 | Smart Organizer |
 | Ctrl+4 | Duplicate Finder |
 | Ctrl+5 | Bulk Renamer |
 | Ctrl+6 | Operation History |
@@ -85,7 +89,7 @@ Read-only metadata inventory of a chosen folder. Never moves or deletes files.
 
 Read-only content duplicate detection (size filter + SHA-256). No deletion.
 
-## Organizer
+## Smart Organizer
 
 Preview-first moves by extension, category, or year/month. Apply requires confirmation. Overwrites are refused. Moves are journaled. Undo is not available.
 
@@ -95,4 +99,4 @@ Display name, exit confirmation, and database path. Closing while a long job run
 
 ## Closing the application
 
-If a scan, organization, duplicate scan, rename, or history load is active, FileForge cancels or asks before exit as appropriate.
+If a scan, organization, duplicate scan, rename, or history load is active, Junction cancels or asks before exit as appropriate.

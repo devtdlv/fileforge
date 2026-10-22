@@ -1,4 +1,8 @@
-"""Per-user application data paths for FileForge."""
+"""Per-user application data paths for Junction.
+
+The on-disk folder remains ``FileForge`` so existing installations keep
+settings and operation history after the product rename to Junction.
+"""
 
 from __future__ import annotations
 
@@ -7,10 +11,11 @@ from pathlib import Path
 
 
 def get_app_data_dir() -> Path:
-    """Return the per-user local application-data directory for FileForge.
+    """Return the per-user local application-data directory.
 
-    On Windows this resolves under ``%LOCALAPPDATA%\\FileForge``.
-    The directory is created if it does not already exist.
+    On Windows this resolves under ``%LOCALAPPDATA%\\FileForge`` (legacy
+    folder name preserved for history compatibility). The directory is
+    created if it does not already exist.
     """
     local_app_data = os.environ.get("LOCALAPPDATA")
     base = Path(local_app_data) if local_app_data else Path.home() / "AppData" / "Local"

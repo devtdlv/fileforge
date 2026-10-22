@@ -1,4 +1,4 @@
-"""SQLite connection management for FileForge."""
+"""SQLite connection management for Junction."""
 
 from __future__ import annotations
 
@@ -58,7 +58,7 @@ class DatabaseManager:
             ) from exc
         except sqlite3.Error as exc:
             raise DatabaseError(
-                f"Unable to initialize the FileForge database at '{self._path}': {exc}"
+                f"Unable to initialize the Junction database at '{self._path}': {exc}"
             ) from exc
 
     def schema_version(self) -> int:

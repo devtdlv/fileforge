@@ -1,4 +1,4 @@
-"""SQLite persistence layer for FileForge."""
+"""SQLite persistence layer for Junction."""
 
 from fileforge.database.connection import DatabaseError, DatabaseManager
 from fileforge.database.journal import OperationJournal

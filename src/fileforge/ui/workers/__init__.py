@@ -1,4 +1,4 @@
-"""Background workers for long-running FileForge tasks."""
+"""Background workers for long-running Junction tasks."""
 
 from fileforge.ui.workers.organize_worker import OrganizeWorkerController
 from fileforge.ui.workers.scan_worker import ScanWorkerController

@@ -13,7 +13,7 @@ class EmptyStateWidget(QFrame):
         self,
         title: str,
         body: str,
-        badge: str = "Coming in a later milestone",
+        badge: str = "Ready when you are",
         parent: QWidget | None = None,
     ) -> None:
         super().__init__(parent)

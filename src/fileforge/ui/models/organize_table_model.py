@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt
+from PySide6.QtGui import QColor
 
 from fileforge.services.organizer import PlanItem, PlanItemStatus
 from fileforge.services.organizer.paths import relative_display_path
@@ -19,6 +20,16 @@ _STATUS_LABELS = {
     PlanItemStatus.SUCCESS: "Moved",
     PlanItemStatus.FAILED: "Failed",
     PlanItemStatus.CANCELLED: "Cancelled",
+}
+
+_STATUS_COLORS = {
+    PlanItemStatus.READY: QColor("#0F7B3A"),
+    PlanItemStatus.SUCCESS: QColor("#0F7B3A"),
+    PlanItemStatus.CONFLICT: QColor("#B42318"),
+    PlanItemStatus.INVALID: QColor("#B42318"),
+    PlanItemStatus.FAILED: QColor("#B42318"),
+    PlanItemStatus.SKIPPED: QColor("#486581"),
+    PlanItemStatus.CANCELLED: QColor("#B54708"),
 }
 
 
@@ -87,6 +98,9 @@ class OrganizeTableModel(QAbstractTableModel):
             if column == 0:
                 return item.status.name
             return None
+
+        if role == Qt.ItemDataRole.ForegroundRole and column == 0:
+            return _STATUS_COLORS.get(item.status)
 
         if role == Qt.ItemDataRole.ToolTipRole:
             if column == 1:

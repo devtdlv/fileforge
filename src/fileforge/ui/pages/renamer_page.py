@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
     QComboBox,
     QFileDialog,
     QFormLayout,
+    QFrame,
     QGroupBox,
     QHBoxLayout,
     QHeaderView,
@@ -18,6 +19,8 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QProgressBar,
     QPushButton,
+    QScrollArea,
+    QSizePolicy,
     QSpinBox,
     QSplitter,
     QTableView,
@@ -39,7 +42,14 @@ from fileforge.services.renamer.rules import RULE_ORDER_DESCRIPTION
 from fileforge.ui.models.rename_table_model import RenameFileListModel, RenamePreviewModel
 from fileforge.ui.widgets.empty_state import EmptyStateWidget
 from fileforge.ui.widgets.page_header import PageHeader
+from fileforge.ui.widgets.table_utils import configure_result_table
 from fileforge.ui.workers.rename_worker import RenameWorkerController
+
+# Practical pane floors so both tables stay usable; the page scrolls when the
+# window cannot fit header + rules + actions + these minimums together.
+_FILES_TABLE_MIN_HEIGHT = 200
+_PREVIEW_TABLE_MIN_HEIGHT = 220
+_SPLITTER_HANDLE = 8
 
 
 class RenamerPage(QWidget):
@@ -58,16 +68,34 @@ class RenamerPage(QWidget):
         self._pending_reload = False
         self._controller = RenameWorkerController(self)
 
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(28, 24, 28, 24)
-        layout.setSpacing(10)
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.setSpacing(0)
+
+        scroll = QScrollArea()
+        scroll.setObjectName("RenamerScroll")
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        outer.addWidget(scroll)
+        self._scroll = scroll
+
+        content = QWidget()
+        content.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.MinimumExpanding
+        )
+        scroll.setWidget(content)
+
+        layout = QVBoxLayout(content)
+        layout.setContentsMargins(24, 16, 24, 16)
+        layout.setSpacing(8)
 
         layout.addWidget(
             PageHeader(
                 "Bulk Renamer",
-                "Select files, configure rules, preview every proposed name, then "
-                "confirm before anything is renamed. Extensions are preserved by default. "
-                f"Rule order: {RULE_ORDER_DESCRIPTION}.",
+                "Configure rules, preview every proposed name, then confirm. "
+                "Extensions are preserved by default.",
             )
         )
 
@@ -99,22 +127,28 @@ class RenamerPage(QWidget):
         folder_row.addWidget(self.load_button)
         layout.addLayout(folder_row)
 
-        # --- Rules ---
+        # --- Rules (compact so tables keep vertical room on laptop heights) ---
         rules_box = QGroupBox("Rename rules")
+        rules_box.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
         rules_form = QFormLayout(rules_box)
-        rules_form.setContentsMargins(12, 12, 12, 12)
-        rules_form.setSpacing(8)
+        rules_form.setContentsMargins(12, 10, 12, 10)
+        rules_form.setHorizontalSpacing(10)
+        rules_form.setVerticalSpacing(6)
 
         self.prefix_edit = QLineEdit()
         self.prefix_edit.setPlaceholderText("e.g. holiday_")
         self.prefix_edit.textChanged.connect(self._invalidate_preview)
-        rules_form.addRow("Prefix", self.prefix_edit)
-
         self.suffix_edit = QLineEdit()
         self.suffix_edit.setPlaceholderText("e.g. _final (before extension)")
         self.suffix_edit.setToolTip("Inserted before the file extension.")
         self.suffix_edit.textChanged.connect(self._invalidate_preview)
-        rules_form.addRow("Suffix", self.suffix_edit)
+        affix_row = QHBoxLayout()
+        affix_row.setSpacing(8)
+        affix_row.addWidget(QLabel("Prefix"))
+        affix_row.addWidget(self.prefix_edit, stretch=1)
+        affix_row.addWidget(QLabel("Suffix"))
+        affix_row.addWidget(self.suffix_edit, stretch=1)
+        rules_form.addRow("Affixes", affix_row)
 
         search_row = QHBoxLayout()
         self.search_edit = QLineEdit()
@@ -145,6 +179,12 @@ class RenamerPage(QWidget):
         self.number_separator.setMaximumWidth(48)
         self.number_separator.setEnabled(False)
         self.number_separator.textChanged.connect(self._invalidate_preview)
+        self.case_combo = QComboBox()
+        self.case_combo.addItem("No change", CaseMode.NONE)
+        self.case_combo.addItem("lowercase (stem)", CaseMode.LOWER)
+        self.case_combo.addItem("UPPERCASE (stem)", CaseMode.UPPER)
+        self.case_combo.addItem("Title Case (stem)", CaseMode.TITLE)
+        self.case_combo.currentIndexChanged.connect(self._invalidate_preview)
         number_row.addWidget(self.numbering_check)
         number_row.addWidget(QLabel("Start"))
         number_row.addWidget(self.number_start)
@@ -152,20 +192,16 @@ class RenamerPage(QWidget):
         number_row.addWidget(self.number_padding)
         number_row.addWidget(QLabel("Sep"))
         number_row.addWidget(self.number_separator)
-        number_row.addStretch(1)
-        rules_form.addRow("Numbering", number_row)
-
-        self.case_combo = QComboBox()
-        self.case_combo.addItem("No change", CaseMode.NONE)
-        self.case_combo.addItem("lowercase (stem)", CaseMode.LOWER)
-        self.case_combo.addItem("UPPERCASE (stem)", CaseMode.UPPER)
-        self.case_combo.addItem("Title Case (stem)", CaseMode.TITLE)
-        self.case_combo.currentIndexChanged.connect(self._invalidate_preview)
-        rules_form.addRow("Case", self.case_combo)
+        number_row.addWidget(QLabel("Case"))
+        number_row.addWidget(self.case_combo, stretch=1)
+        rules_form.addRow("Options", number_row)
 
         order_note = QLabel(f"Applied in order: {RULE_ORDER_DESCRIPTION}")
         order_note.setObjectName("MutedLabel")
         order_note.setWordWrap(True)
+        order_note.setToolTip(
+            "Rules always run in this fixed sequence so previews stay predictable."
+        )
         rules_form.addRow("", order_note)
         layout.addWidget(rules_box)
 
@@ -244,10 +280,7 @@ class RenamerPage(QWidget):
         self._file_model = RenameFileListModel(self)
         self.files_table = QTableView()
         self.files_table.setModel(self._file_model)
-        self.files_table.setAlternatingRowColors(True)
-        self.files_table.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
-        self.files_table.verticalHeader().setVisible(False)
-        self.files_table.setWordWrap(False)
+        configure_result_table(self.files_table, min_height=_FILES_TABLE_MIN_HEIGHT)
         self.files_table.setTextElideMode(Qt.TextElideMode.ElideMiddle)
         self._configure_file_columns()
         self._file_model.dataChanged.connect(self._on_selection_changed)
@@ -255,21 +288,32 @@ class RenamerPage(QWidget):
         self._preview_model = RenamePreviewModel(self)
         self.preview_table = QTableView()
         self.preview_table.setModel(self._preview_model)
-        self.preview_table.setAlternatingRowColors(True)
-        self.preview_table.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
-        self.preview_table.verticalHeader().setVisible(False)
-        self.preview_table.setWordWrap(False)
+        configure_result_table(self.preview_table, min_height=_PREVIEW_TABLE_MIN_HEIGHT)
         self.preview_table.setTextElideMode(Qt.TextElideMode.ElideMiddle)
         self._configure_preview_columns()
 
+        files_pane = self._labeled_table_pane("File selection", self.files_table)
+        preview_pane = self._labeled_table_pane("Rename preview", self.preview_table)
+
         splitter = QSplitter(Qt.Orientation.Vertical)
-        splitter.addWidget(self.files_table)
-        splitter.addWidget(self.preview_table)
+        splitter.setObjectName("RenamerSplitter")
+        splitter.setChildrenCollapsible(False)
+        splitter.setHandleWidth(_SPLITTER_HANDLE)
+        splitter.addWidget(files_pane)
+        splitter.addWidget(preview_pane)
         splitter.setStretchFactor(0, 2)
         splitter.setStretchFactor(1, 3)
+        # Floor both panes so the handle never has to crush either table.
+        splitter.setMinimumHeight(
+            _FILES_TABLE_MIN_HEIGHT + _PREVIEW_TABLE_MIN_HEIGHT + _SPLITTER_HANDLE + 48
+        )
+        splitter.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.MinimumExpanding
+        )
         splitter.setVisible(False)
         self._splitter = splitter
         layout.addWidget(splitter, stretch=1)
+        self._reset_splitter_sizes()
 
         self._controller.inventory_progress.connect(self._on_inventory_progress)
         self._controller.inventory_finished.connect(self._on_inventory_finished)
@@ -290,6 +334,32 @@ class RenamerPage(QWidget):
             return True
         self._controller.cancel()
         return self._controller.wait_for_idle(wait_ms)
+
+    @staticmethod
+    def _labeled_table_pane(title: str, table: QTableView) -> QWidget:
+        """Wrap a result table with a caption so panes stay identifiable when resized."""
+        pane = QWidget()
+        pane.setMinimumHeight(table.minimumHeight() + 28)
+        pane.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        box = QVBoxLayout(pane)
+        box.setContentsMargins(0, 0, 0, 0)
+        box.setSpacing(4)
+        caption = QLabel(title)
+        caption.setObjectName("SectionKicker")
+        box.addWidget(caption)
+        box.addWidget(table, stretch=1)
+        return pane
+
+    def _reset_splitter_sizes(self) -> None:
+        """Apply a balanced initial split that respects both table floors."""
+        total = max(self._splitter.height(), self._splitter.minimumHeight())
+        # Prefer a slightly taller preview pane; both stay above their floors.
+        files = max(_FILES_TABLE_MIN_HEIGHT + 28, int(total * 0.40))
+        preview = max(_PREVIEW_TABLE_MIN_HEIGHT + 28, total - files - _SPLITTER_HANDLE)
+        if preview < _PREVIEW_TABLE_MIN_HEIGHT + 28:
+            preview = _PREVIEW_TABLE_MIN_HEIGHT + 28
+            files = max(_FILES_TABLE_MIN_HEIGHT + 28, total - preview - _SPLITTER_HANDLE)
+        self._splitter.setSizes([files, preview])
 
     def _configure_file_columns(self) -> None:
         header = self.files_table.horizontalHeader()
@@ -428,7 +498,7 @@ class RenamerPage(QWidget):
             "Confirm bulk rename",
             (
                 f"Rename {count} file(s) as shown in the preview?\n\n"
-                "This cannot be undone from FileForge in this milestone.\n"
+                "This cannot be undone from Junction in this milestone.\n"
                 "Existing files will never be overwritten."
             ),
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
@@ -466,6 +536,7 @@ class RenamerPage(QWidget):
         self._update_selection_label()
         self._splitter.setVisible(True)
         self.empty_state.setVisible(False)
+        self._reset_splitter_sizes()
         self.select_all_button.setEnabled(True)
         self.clear_selection_button.setEnabled(True)
         self.status_label.setText(
@@ -484,16 +555,17 @@ class RenamerPage(QWidget):
         self._preview_model.set_items(plan.items)
         self._splitter.setVisible(True)
         self.empty_state.setVisible(False)
+        self._reset_splitter_sizes()
 
         ready = sum(1 for i in plan.items if i.status == RenameItemStatus.READY)
         unchanged = plan.unchanged_count
         conflicts = len(plan.conflict_items)
         self.status_label.setText(plan.status.name.replace("_", " ").title())
         self.summary_label.setText(
-            f"Selected: {len(plan.items)}  |  Ready: {ready}  |  "
-            f"Unchanged: {unchanged}  |  Conflicts/invalid: {conflicts}  |  "
-            f"{plan.message}"
+            f"{len(plan.items)} selected · {ready} ready · "
+            f"{unchanged} unchanged · {conflicts} conflicts/invalid"
         )
+        self.summary_label.setToolTip(plan.message)
         self.summary_label.setVisible(True)
         self.apply_rename_button.setEnabled(bool(plan.can_apply))
 

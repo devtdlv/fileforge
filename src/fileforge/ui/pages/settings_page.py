@@ -44,7 +44,7 @@ class SettingsPage(QWidget):
         layout.addWidget(
             PageHeader(
                 "Settings",
-                "Preferences are stored in your local FileForge database. "
+                "Preferences are stored in your local Junction database. "
                 "They never leave this machine.",
             )
         )
@@ -72,12 +72,15 @@ class SettingsPage(QWidget):
         layout.addWidget(card)
 
         self.save_button = QPushButton("Save Settings")
+        self.save_button.setObjectName("PrimaryButton")
+        self.save_button.setToolTip("Write these preferences to the local database")
         self.save_button.clicked.connect(self.save_settings)
         layout.addWidget(self.save_button)
 
         hint = QLabel(
-            "Theme and advanced options will expand in later milestones. "
-            "Unfinished actions remain disabled elsewhere in the app."
+            "Only settings shown here are stored today. Cloud sync, themes, and "
+            "telemetry are intentionally not offered. Destructive actions elsewhere "
+            "in the app stay disabled until implemented."
         )
         hint.setObjectName("MutedLabel")
         hint.setWordWrap(True)
@@ -102,7 +105,7 @@ class SettingsPage(QWidget):
         QMessageBox.information(
             self,
             "Settings saved",
-            "Your preferences were written to the local FileForge database.",
+            "Your preferences were written to the local Junction database.",
         )
 
     @property

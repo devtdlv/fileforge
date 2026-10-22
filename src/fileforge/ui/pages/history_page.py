@@ -31,6 +31,7 @@ from fileforge.services.history import (
 from fileforge.ui.models.history_table_model import HistoryBatchModel, HistoryEntryModel
 from fileforge.ui.widgets.empty_state import EmptyStateWidget
 from fileforge.ui.widgets.page_header import PageHeader
+from fileforge.ui.widgets.table_utils import configure_result_table
 from fileforge.ui.workers.history_worker import HistoryWorkerController
 
 
@@ -57,7 +58,7 @@ class HistoryPage(QWidget):
             PageHeader(
                 "Operation History",
                 "Review recorded Organizer moves and Bulk Renamer batches from the "
-                "local SQLite journal. This page is read-only: FileForge does not "
+                "local SQLite journal. This page is read-only: Junction does not "
                 "undo, retry, delete, or edit history here.",
             )
         )
@@ -157,12 +158,8 @@ class HistoryPage(QWidget):
         self._batch_model = HistoryBatchModel(self)
         self.batches_table = QTableView()
         self.batches_table.setModel(self._batch_model)
-        self.batches_table.setAlternatingRowColors(True)
-        self.batches_table.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
-        self.batches_table.setSelectionMode(QTableView.SelectionMode.SingleSelection)
-        self.batches_table.setWordWrap(False)
+        configure_result_table(self.batches_table, min_height=200)
         self.batches_table.setTextElideMode(Qt.TextElideMode.ElideMiddle)
-        self.batches_table.verticalHeader().setVisible(False)
         self.batches_table.setSortingEnabled(False)
         self._configure_batch_columns()
         self.batches_table.selectionModel().selectionChanged.connect(
@@ -176,11 +173,8 @@ class HistoryPage(QWidget):
         self._entry_model = HistoryEntryModel(self)
         self.entries_table = QTableView()
         self.entries_table.setModel(self._entry_model)
-        self.entries_table.setAlternatingRowColors(True)
-        self.entries_table.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
-        self.entries_table.setWordWrap(False)
+        configure_result_table(self.entries_table, min_height=180)
         self.entries_table.setTextElideMode(Qt.TextElideMode.ElideMiddle)
-        self.entries_table.verticalHeader().setVisible(False)
         self._configure_entry_columns()
 
         detail_host = QWidget()
@@ -188,13 +182,15 @@ class HistoryPage(QWidget):
         detail_layout.setContentsMargins(0, 0, 0, 0)
         detail_layout.setSpacing(6)
         detail_layout.addWidget(self.detail_label)
-        detail_layout.addWidget(self.entries_table)
+        detail_layout.addWidget(self.entries_table, stretch=1)
 
         splitter = QSplitter(Qt.Orientation.Vertical)
+        splitter.setChildrenCollapsible(False)
         splitter.addWidget(self.batches_table)
         splitter.addWidget(detail_host)
         splitter.setStretchFactor(0, 3)
         splitter.setStretchFactor(1, 2)
+        splitter.setSizes([280, 240])
         splitter.setVisible(False)
         self._splitter = splitter
         layout.addWidget(splitter, stretch=1)
@@ -205,6 +201,7 @@ class HistoryPage(QWidget):
         self.undo_button.setToolTip(
             "Undo is not implemented. Operation History is read-only in this milestone."
         )
+        self.undo_button.setAccessibleName("Undo Last Operation (unavailable)")
         self.undo_button.setObjectName("SecondaryButton")
         layout.addWidget(self.undo_button)
 
@@ -265,8 +262,12 @@ class HistoryPage(QWidget):
         header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(6, QHeaderView.ResizeMode.ResizeToContents)
+        # Prefer Interactive so users can widen long path columns; stretch both.
         header.setSectionResizeMode(7, QHeaderView.ResizeMode.Stretch)
         header.setSectionResizeMode(8, QHeaderView.ResizeMode.Stretch)
+        header.setMinimumSectionSize(80)
+        self.batches_table.setColumnWidth(7, 220)
+        self.batches_table.setColumnWidth(8, 220)
 
     def _configure_entry_columns(self) -> None:
         header = self.entries_table.horizontalHeader()

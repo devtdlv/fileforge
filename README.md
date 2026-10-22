@@ -1,149 +1,107 @@
-# FileForge
+# Junction
 
-FileForge is a local-first Windows desktop application for safely organizing files, detecting duplicates, bulk renaming, reviewing storage information, and reversing supported operations when it is safe to do so.
+Local-first Windows desktop toolkit for scanning folders, organizing files, finding duplicates, and renaming in bulk, with preview-first safety and a SQLite operation journal.
 
-Built with Python 3.13 and PySide6. All data stays on your machine. No cloud services, paid APIs, or external databases.
+**Stack:** Python 3.13 · PySide6 · SQLite · pytest · Ruff
+**Status:** Milestone 7 (UI polish, Junction branding, and portfolio readiness). Packaging is not included yet.
+**Repository:** [github.com/devtdlv/junction](https://github.com/devtdlv/junction)
 
-## Current status
+## Overview
 
-**Milestone 6 (Professional Operation History)** builds on the shell, Scanner, Organizer, Duplicate Finder, and Bulk Renamer:
+Junction is for people who want practical file management on their own PC without cloud sync, telemetry, or silent filesystem changes. Scanning and duplicate detection stay read-only. Smart Organizer and Bulk Renamer require an explicit preview and confirmation before anything moves or renames. Confirmed changes are recorded in a local journal you can browse in Operation History.
 
-- Desktop application window with sidebar navigation
-- Seven content pages (Dashboard through Settings)
-- SQLite foundation with schema versioning, settings, and an operation journal
-- **Folder Scanner**: read-only inventory with filter/sort/cancel
-- **Organizer**: preview-first moves by extension, category, or modified year/month
-- **Duplicate Finder**: staged size filtering + SHA-256 grouping (strictly read-only)
-- **Bulk Renamer**: preview-first renames with conflict detection and journaling
-- **Operation History**: read-only browser for journaled batches and file outcomes
-- Background workers for scanning, organization, duplicates, renaming, and history loads
-- Conflict detection with no silent overwrites
-- Automated tests and Ruff lint configuration
+The installable Python package name remains `fileforge` (launch with `python -m fileforge`). Product branding in the UI and documentation is **Junction**.
 
-**Not yet implemented:** duplicate deletion/cleanup, undo/recovery, scan inventory persistence across restarts, and PyInstaller packaging.
+## Features
 
-## Planned features
+| Feature | What it does |
+|---------|----------------|
+| **Folder Scanner** | Read-only inventory of names, sizes, and modified times |
+| **Smart Organizer** | Preview-first moves by extension, category, or year/month |
+| **Duplicate Finder** | Size filtering + SHA-256 grouping (detection only) |
+| **Bulk Renamer** | Configurable rules, collision checks, preview, then confirm |
+| **Operation History** | Read-only browser for journaled Organizer and Renamer batches |
+| **Dashboard** | Junction introduction, feature shortcuts, and real journal stats |
 
-| Feature | Status |
-|---------|--------|
-| Application shell and navigation | Available |
-| Local SQLite settings and operation journal | Available |
-| Folder Scanner inventory (read-only) | Available |
-| Rules-based Organizer with preview | Available |
-| Duplicate Finder (detection only, no deletion) | Available |
-| Bulk Renamer with conflict checks | Available |
-| Operation History (read-only browse) | Available |
-| Safe undo / recovery | Planned |
-| Storage review insights | Planned |
-| PyInstaller packaging | Planned |
+## Screenshots
 
-## Technology stack
+Authentic captures from the running PySide6 application (disposable demo files only). No AI-generated mockups.
 
-- Python 3.13
-- PySide6
-- SQLite (`sqlite3` standard library)
-- pytest and pytest-qt
-- Ruff
-- PyInstaller (later milestone)
-- Windows PowerShell for setup commands
+| Dashboard | Folder Scanner |
+|-----------|----------------|
+| ![Junction Dashboard](docs/screenshots/01-dashboard.png) | ![Folder Scanner](docs/screenshots/02-folder-scanner.png) |
 
-## Prerequisites
+| Smart Organizer | Duplicate Finder |
+|-----------------|------------------|
+| ![Smart Organizer](docs/screenshots/03-smart-organizer.png) | ![Duplicate Finder](docs/screenshots/04-duplicate-finder.png) |
 
-- Windows 10 or later
-- Python **3.13** (use `py -3.13`; do not rely on the default `python` if it points elsewhere)
-- Git (optional, for version control)
+| Bulk Renamer | Operation History |
+|--------------|-------------------|
+| ![Bulk Renamer](docs/screenshots/05-bulk-renamer.png) | ![Operation History](docs/screenshots/06-operation-history.png) |
 
-## Installation (Windows PowerShell)
+To regenerate screenshots locally:
 
-From the project root:
+```powershell
+.\.venv\Scripts\python.exe tools\capture_portfolio_screenshots.py
+```
+
+## Safety philosophy
+
+- Local-first: data stays on this machine
+- Read-only Folder Scanner and Duplicate Finder
+- Preview before any Organizer move or Bulk Renamer apply
+- Collision detection with no silent overwrites
+- Explicit confirmation before modifying files
+- SQLite journal for confirmed Organizer and Renamer batches
+- No automatic duplicate deletion
+- Undo is not implemented yet (Operation History is browse-only)
+
+## Installation (Windows)
+
+Requires Python **3.13** on Windows 10 or later.
 
 ```powershell
 py -3.13 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
 .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
-```
-
-Verify the virtual environment interpreter:
-
-```powershell
 .\.venv\Scripts\python.exe --version
 ```
 
-Expected: `Python 3.13.x`
-
-## Launch
+Launch:
 
 ```powershell
 .\.venv\Scripts\python.exe -m fileforge
 ```
 
-## Operation History quick start
-
-1. Open **Operation History** (Ctrl+6).
-2. Review summary counts and the batch table (newest first by default).
-3. Select a batch to inspect per-file outcomes, including recorded errors.
-4. Filter by Organizer / Bulk Renamer, status, or search paths.
-5. Click **Refresh** after new Organizer or Renamer applies.
-
-History is read-only. Undo is not available.
-
-## Bulk Renamer quick start
-
-1. Open **Bulk Renamer** (Ctrl+5).
-2. Load files, configure rules, preview, then confirm apply.
-
-## Duplicate Finder quick start
-
-1. Open **Duplicate Finder** (Ctrl+4).
-2. Choose a folder and start a scan. Detection is read-only.
-
-## Organizer quick start
-
-1. Open **Organizer** (Ctrl+3).
-2. Choose source and destination folders, preview, then confirm apply.
-
-## Folder Scanner quick start
-
-1. Open **Folder Scanner** (Ctrl+2).
-2. Choose a folder and click **Start Scan**.
-
-## Tests and lint
+## Testing
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest
 .\.venv\Scripts\python.exe -m ruff check .
 ```
 
-## Safety philosophy
+## Architecture
 
-1. Preview before applying changes.
-2. No silent file overwrites.
-3. No automatic deletion of duplicates.
-4. Explicit user confirmation before modifying files.
-5. Operation journaling and recovery.
-6. Undo only when safe and verifiable.
-7. No filesystem changes during scanning or preview.
-8. Tests use temporary directories, never personal files.
+- **PySide6 UI** with sidebar navigation and per-feature pages
+- **Pure-Python services** for scanning, planning, hashing, renaming, and history queries
+- **Background workers** (`QThread`) so long scans do not freeze the GUI
+- **SQLite** settings store and operation journal under `%LOCALAPPDATA%\FileForge\` (legacy folder name kept so existing history remains accessible after the Junction rename)
 
-## Development roadmap
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/USER_GUIDE.md](docs/USER_GUIDE.md).
 
-1. **Milestone 1** - Project foundation, UI shell, SQLite, tests, docs
-2. **Milestone 2** - Folder Scanner and read-only inventory
-3. **Milestone 3** - Organizer with preview and confirmed apply
-4. **Milestone 4** - Duplicate Finder (detection only)
-5. **Milestone 5** - Bulk Renamer (preview-first)
-6. **Milestone 6** - Operation History (read-only) *(current)*
-7. **Milestone 7** - Packaging, polish, and portfolio screenshots
+## Limitations
 
-## Screenshot gallery
+- No undo / redo of past operations
+- Duplicate Finder does not delete or quarantine files
+- No packaged Windows executable yet (run from source)
+- Primary testing target is Windows
+- Scanner and Duplicate Finder results are session-only (not journaled)
 
-> **Pending.** Portfolio screenshots may be added under `docs/screenshots/` from safe demonstration data only. No AI-generated images are included.
+## Roadmap
 
-## Documentation
-
-- [User Guide](docs/USER_GUIDE.md)
-- [Architecture](docs/ARCHITECTURE.md)
+- Windows executable packaging and release validation (Milestone 8)
+- Optional future enhancements: undo when safe, richer settings, storage insights
 
 ## License
 
-MIT License. See [LICENSE](LICENSE).
+MIT

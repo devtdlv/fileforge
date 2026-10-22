@@ -1,4 +1,4 @@
-"""Schema definitions and versioned migrations for FileForge."""
+"""Schema definitions and versioned migrations for Junction."""
 
 from __future__ import annotations
 

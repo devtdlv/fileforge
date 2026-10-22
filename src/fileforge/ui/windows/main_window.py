@@ -1,4 +1,4 @@
-"""Primary FileForge application window with sidebar navigation."""
+"""Primary Junction application window with sidebar navigation."""
 
 from __future__ import annotations
 
@@ -72,8 +72,12 @@ class MainWindow(QMainWindow):
         self.setStatusBar(status)
 
     def _register_pages(self) -> None:
-        dashboard = DashboardPage()
+        dashboard = DashboardPage(self._database)
         dashboard.open_scanner_requested.connect(lambda: self.show_page("scanner"))
+        dashboard.open_organizer_requested.connect(lambda: self.show_page("organizer"))
+        dashboard.open_duplicates_requested.connect(lambda: self.show_page("duplicates"))
+        dashboard.open_renamer_requested.connect(lambda: self.show_page("renamer"))
+        dashboard.open_history_requested.connect(lambda: self.show_page("history"))
 
         scanner = ScannerPage()
         scanner.scan_summary_changed.connect(dashboard.set_last_scan_summary)
@@ -109,11 +113,13 @@ class MainWindow(QMainWindow):
         self.stack.setCurrentWidget(widget)
         if self.sidebar.current_page_id() != page_id:
             self.sidebar.select_page(page_id)
+        if page_id == "dashboard" and isinstance(widget, DashboardPage):
+            widget.refresh_journal_summary()
 
         titles = {
             "dashboard": "Dashboard",
             "scanner": "Folder Scanner",
-            "organizer": "Organizer",
+            "organizer": "Smart Organizer",
             "duplicates": "Duplicate Finder",
             "renamer": "Bulk Renamer",
             "history": "Operation History",
@@ -140,7 +146,7 @@ class MainWindow(QMainWindow):
             answer = QMessageBox.question(
                 self,
                 "Scan in progress",
-                "A folder scan is still running. Cancel it and exit FileForge?",
+                f"A folder scan is still running. Cancel it and exit {__app_name__}?",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No,
             )
@@ -155,7 +161,7 @@ class MainWindow(QMainWindow):
                 self,
                 "Organization in progress",
                 "An organization preview or apply is still running. "
-                "Cancel it and exit FileForge?",
+                f"Cancel it and exit {__app_name__}?",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No,
             )
@@ -169,7 +175,7 @@ class MainWindow(QMainWindow):
             answer = QMessageBox.question(
                 self,
                 "Duplicate scan in progress",
-                "A duplicate scan is still running. Cancel it and exit FileForge?",
+                f"A duplicate scan is still running. Cancel it and exit {__app_name__}?",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No,
             )
@@ -184,7 +190,7 @@ class MainWindow(QMainWindow):
                 self,
                 "Rename in progress",
                 "A bulk rename load, preview, or apply is still running. "
-                "Cancel it and exit FileForge?",
+                f"Cancel it and exit {__app_name__}?",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No,
             )
@@ -204,8 +210,8 @@ class MainWindow(QMainWindow):
 
         answer = QMessageBox.question(
             self,
-            "Exit FileForge",
-            "Close FileForge?",
+            f"Exit {__app_name__}",
+            f"Close {__app_name__}?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
         )

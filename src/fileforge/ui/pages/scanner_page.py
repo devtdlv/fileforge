@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
     QComboBox,
     QFileDialog,
     QHBoxLayout,
+    QHeaderView,
     QLabel,
     QLineEdit,
     QMessageBox,
@@ -30,6 +31,7 @@ from fileforge.services.scanner import (
 from fileforge.ui.models.scan_table_model import ScanFilterProxyModel, ScanTableModel
 from fileforge.ui.widgets.empty_state import EmptyStateWidget
 from fileforge.ui.widgets.page_header import PageHeader
+from fileforge.ui.widgets.table_utils import configure_result_table
 from fileforge.ui.workers.scan_worker import ScanWorkerController, summarize_scan_result
 
 
@@ -51,7 +53,7 @@ class ScannerPage(QWidget):
         layout.addWidget(
             PageHeader(
                 "Folder Scanner",
-                "Inventory a folder you choose. Scanning is read-only: FileForge "
+                "Inventory a folder you choose. Scanning is read-only: Junction "
                 "never moves, renames, overwrites, or deletes files while scanning.",
             )
         )
@@ -144,13 +146,10 @@ class ScannerPage(QWidget):
         self.results_table = QTableView()
         self.results_table.setModel(self._proxy)
         self.results_table.setSortingEnabled(True)
-        self.results_table.setAlternatingRowColors(True)
-        self.results_table.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
-        self.results_table.setSelectionMode(QTableView.SelectionMode.SingleSelection)
-        self.results_table.setWordWrap(False)
-        self.results_table.verticalHeader().setVisible(False)
-        self.results_table.horizontalHeader().setStretchLastSection(True)
+        configure_result_table(self.results_table, min_height=220)
+        self.results_table.setTextElideMode(Qt.TextElideMode.ElideMiddle)
         self.results_table.horizontalHeader().setSectionsMovable(False)
+        self._configure_result_columns()
         self.results_table.setVisible(False)
         layout.addWidget(self.results_table, stretch=1)
 
@@ -188,7 +187,9 @@ class ScannerPage(QWidget):
         if not chosen:
             return
         self._selected_folder = Path(chosen)
-        self.folder_label.setText(str(self._selected_folder))
+        display = str(self._selected_folder)
+        self.folder_label.setText(display)
+        self.folder_label.setToolTip(display)
         self.start_button.setEnabled(True)
         self.status_label.setText(
             "Folder selected. Start a scan when ready. Scanning will not modify files."
@@ -273,7 +274,14 @@ class ScannerPage(QWidget):
             ScanStatus.PARTIAL: "Scan completed with issues",
             ScanStatus.FAILED: "Scan failed",
         }.get(result.status, "Scan finished")
-        self.status_label.setText(f"{status_prefix}. {result.message}")
+        # Avoid repeating the same phrase when the engine message already states it.
+        message = (result.message or "").strip()
+        if message and message.casefold().startswith(status_prefix.casefold()):
+            self.status_label.setText(message)
+        elif message:
+            self.status_label.setText(f"{status_prefix}. {message}")
+        else:
+            self.status_label.setText(status_prefix)
 
     def _on_failed(self, message: str) -> None:
         self.status_label.setText(message)
@@ -343,6 +351,19 @@ class ScannerPage(QWidget):
         for ext in extensions:
             self.extension_filter.addItem(f".{ext}", ext)
         self.extension_filter.blockSignals(False)
+
+    def _configure_result_columns(self) -> None:
+        header = self.results_table.horizontalHeader()
+        header.setStretchLastSection(False)
+        header.setMinimumSectionSize(72)
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)  # Name
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)  # Type
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)  # Ext
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)  # Size
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)  # Modified
+        header.setSectionResizeMode(5, QHeaderView.ResizeMode.Stretch)  # Relative path
+        # Ensure datetime strings are not clipped at common window widths.
+        self.results_table.setColumnWidth(4, 150)
 
     def _on_search_changed(self, text: str) -> None:
         self._proxy.set_name_query(text)

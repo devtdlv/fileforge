@@ -30,6 +30,7 @@ from fileforge.ui.models.duplicate_table_model import (
 )
 from fileforge.ui.widgets.empty_state import EmptyStateWidget
 from fileforge.ui.widgets.page_header import PageHeader
+from fileforge.ui.widgets.table_utils import configure_result_table
 from fileforge.ui.workers.duplicate_worker import DuplicateWorkerController
 
 
@@ -50,7 +51,7 @@ class DuplicatesPage(QWidget):
             PageHeader(
                 "Duplicate Finder",
                 "Find files with identical content using size filtering and SHA-256. "
-                "This page is read-only: FileForge never deletes or quarantines copies.",
+                "This page is read-only: Junction never deletes or quarantines copies.",
             )
         )
 
@@ -132,29 +133,24 @@ class DuplicatesPage(QWidget):
         self.groups_table = QTableView()
         self.groups_table.setModel(self._group_proxy)
         self.groups_table.setSortingEnabled(True)
-        self.groups_table.setAlternatingRowColors(True)
-        self.groups_table.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
-        self.groups_table.setSelectionMode(QTableView.SelectionMode.SingleSelection)
-        self.groups_table.setWordWrap(False)
+        configure_result_table(self.groups_table, min_height=180)
         self.groups_table.setTextElideMode(Qt.TextElideMode.ElideMiddle)
-        self.groups_table.verticalHeader().setVisible(False)
         self._configure_group_columns()
         self.groups_table.selectionModel().selectionChanged.connect(self._on_group_selected)
 
         self.members_table = QTableView()
         self.members_table.setModel(self._member_model)
-        self.members_table.setAlternatingRowColors(True)
-        self.members_table.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
-        self.members_table.setWordWrap(False)
+        configure_result_table(self.members_table, min_height=160)
         self.members_table.setTextElideMode(Qt.TextElideMode.ElideMiddle)
-        self.members_table.verticalHeader().setVisible(False)
         self._configure_member_columns()
 
         splitter = QSplitter(Qt.Orientation.Vertical)
+        splitter.setChildrenCollapsible(False)
         splitter.addWidget(self.groups_table)
         splitter.addWidget(self.members_table)
         splitter.setStretchFactor(0, 3)
         splitter.setStretchFactor(1, 2)
+        splitter.setSizes([260, 200])
         splitter.setVisible(False)
         self._results_splitter = splitter
         layout.addWidget(splitter, stretch=1)
@@ -164,6 +160,9 @@ class DuplicatesPage(QWidget):
         self.delete_selected_button.setEnabled(False)
         self.delete_selected_button.setToolTip(
             "Deletion is not available. Duplicate Finder is read-only in this milestone."
+        )
+        self.delete_selected_button.setAccessibleName(
+            "Delete Selected Duplicates (unavailable)"
         )
         self.delete_selected_button.setObjectName("SecondaryButton")
         layout.addWidget(self.delete_selected_button)
@@ -216,7 +215,9 @@ class DuplicatesPage(QWidget):
         if not chosen:
             return
         self._folder = Path(chosen)
-        self.folder_label.setText(str(self._folder))
+        display = str(self._folder)
+        self.folder_label.setText(display)
+        self.folder_label.setToolTip(display)
         self.start_button.setEnabled(True)
         self.status_label.setText(
             "Folder selected. Start a scan when ready. No files will be modified."

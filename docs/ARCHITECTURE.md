@@ -1,10 +1,10 @@
-# FileForge Architecture
+# Junction Architecture
 
 ## Goals
 
-FileForge is a local-first Windows desktop app with:
+Junction is a local-first Windows desktop app with:
 
-- A maintainable `src/` package layout
+- A maintainable `src/` package layout (Python package name `fileforge`)
 - A PySide6 UI shell and shared design system
 - SQLite persistence with versioned migrations
 - Read-only folder scanning and duplicate detection
@@ -33,8 +33,17 @@ src/fileforge/
     models/
     workers/
     pages/
+    widgets/            # empty states, page header, table helpers
+    styles/theme.py     # shared stylesheet
     windows/
 ```
+
+## Branding and compatibility
+
+- Product name in the UI and documentation: **Junction**
+- Launch command: `python -m fileforge`
+- Default database path remains `%LOCALAPPDATA%\FileForge\fileforge.db`
+- Journal schema and table names are unchanged
 
 ## Operation History design
 
@@ -54,7 +63,7 @@ src/fileforge/
 | Batch status | `pending`, `completed`, `partial`, `cancelled`, `failed` |
 | Entry status | `pending`, `success`, `failed` |
 
-Schema remains at **v2**; no migration was required for Milestone 6.
+Schema remains at **v2**; no migration was required for Milestones 6–7.
 
 ## Bulk renamer / organizer / duplicates
 
@@ -73,4 +82,4 @@ See `fileforge.core.safety`. Previews and history browsing are read-only. Apply 
 
 ## Testing
 
-Temporary SQLite databases only. Coverage includes history filters, search escaping, pagination, entry details, UI navigation/refresh, and prior feature suites.
+Temporary SQLite databases only. Coverage includes history filters, search escaping, pagination, entry details, UI navigation/refresh, layout polish, dashboard journal summaries, and prior feature suites.

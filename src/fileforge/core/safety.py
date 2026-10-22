@@ -1,8 +1,8 @@
-"""Safety architecture principles for future file operations.
+"""Safety architecture principles for Junction file operations.
 
-These principles define hard boundaries for FileForge. Milestone 1 does not
-implement organize, rename, delete, or undo. Future milestones must honor
-these rules before touching the filesystem.
+These principles define hard boundaries for Junction. Undo and duplicate
+deletion are not implemented yet. Future milestones must honor these rules
+before expanding filesystem-changing behavior.
 """
 
 from __future__ import annotations

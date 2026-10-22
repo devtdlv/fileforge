@@ -5,9 +5,22 @@ from __future__ import annotations
 from pathlib import Path
 
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt
+from PySide6.QtGui import QColor
 
 from fileforge.services.organizer.paths import relative_display_path
-from fileforge.services.renamer import RenameItem
+from fileforge.services.renamer import RenameItem, RenameItemStatus
+
+_STATUS_COLORS = {
+    RenameItemStatus.READY: QColor("#0F7B3A"),
+    RenameItemStatus.UNCHANGED: QColor("#486581"),
+    RenameItemStatus.CONFLICT: QColor("#B42318"),
+    RenameItemStatus.INVALID: QColor("#B42318"),
+    RenameItemStatus.MISSING: QColor("#B54708"),
+    RenameItemStatus.STALE: QColor("#B54708"),
+    RenameItemStatus.FAILED: QColor("#B42318"),
+    RenameItemStatus.SUCCESS: QColor("#0F7B3A"),
+    RenameItemStatus.CANCELLED: QColor("#B54708"),
+}
 
 FILE_COLUMNS = ("Selected", "Name", "Folder")
 PREVIEW_COLUMNS = ("Original", "Proposed", "Folder", "Status", "Notes")
@@ -201,6 +214,9 @@ class RenamePreviewModel(QAbstractTableModel):
 
         if role == Qt.ItemDataRole.UserRole:
             return item
+
+        if role == Qt.ItemDataRole.ForegroundRole and column == 3:
+            return _STATUS_COLORS.get(item.status)
         return None
 
     def clear(self) -> None:

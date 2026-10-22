@@ -1,4 +1,4 @@
-"""Application entry point for FileForge."""
+"""Application entry point for Junction (``python -m fileforge``)."""
 
 from __future__ import annotations
 
@@ -44,7 +44,7 @@ def configure_qt_before_app() -> None:
     after the application object already exists (QTBUG-132430, fixed upstream
     in Qt 6.10). Cursor and other host environments often set this variable.
 
-    FileForge therefore:
+    Junction therefore:
     1. Reads and removes ``QT_SCALE_FACTOR_ROUNDING_POLICY`` from ``os.environ``
     2. Applies a recognized policy via the public API before constructing
        ``QApplication``
@@ -94,7 +94,7 @@ def create_main_window(
 
 
 def run(argv: list[str] | None = None) -> int:
-    """Launch FileForge and return the Qt exit code."""
+    """Launch Junction and return the Qt exit code."""
     app = create_application(argv)
     database: DatabaseManager | None = None
     try:
@@ -104,7 +104,7 @@ def run(argv: list[str] | None = None) -> int:
             None,
             f"{__app_name__} could not start",
             (
-                "FileForge could not initialize its local database.\n\n"
+                f"{__app_name__} could not initialize its local database.\n\n"
                 f"{exc}\n\n"
                 "Check that your user application-data folder is writable, "
                 "then try again."

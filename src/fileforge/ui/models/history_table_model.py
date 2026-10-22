@@ -6,8 +6,18 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt
+from PySide6.QtGui import QColor
 
 from fileforge.services.history import BatchSummary, EntrySummary
+
+_STATUS_COLORS = {
+    "completed": QColor("#0F7B3A"),
+    "success": QColor("#0F7B3A"),
+    "partial": QColor("#B54708"),
+    "cancelled": QColor("#B54708"),
+    "failed": QColor("#B42318"),
+    "pending": QColor("#486581"),
+}
 
 BATCH_COLUMNS = (
     "When",
@@ -49,14 +59,23 @@ def _format_local_timestamp(value: str) -> str:
         return value
 
 
-def _short_path(path: str, max_len: int = 48) -> str:
+def _short_path(path: str, max_len: int = 56) -> str:
+    """Abbreviate for the table cell; full path remains on the tooltip."""
     if not path:
         return ""
     if len(path) <= max_len:
         return path
-    name = Path(path).name
-    if name and len(name) < max_len - 3:
-        return f"…/{name}"
+    try:
+        parts = Path(path).parts
+    except (OSError, TypeError, ValueError):
+        return "…" + path[-(max_len - 1) :]
+    if len(parts) >= 2:
+        tail = f"{parts[-2]}/{parts[-1]}"
+        if len(tail) <= max_len - 1:
+            return "…" + tail
+    name = parts[-1] if parts else path
+    if name and len(name) < max_len - 1:
+        return "…" + name
     return "…" + path[-(max_len - 1) :]
 
 
@@ -148,6 +167,9 @@ class HistoryBatchModel(QAbstractTableModel):
 
         if role == Qt.ItemDataRole.TextAlignmentRole and column in {3, 4, 5, 6}:
             return int(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+
+        if role == Qt.ItemDataRole.ForegroundRole and column == 2:
+            return _STATUS_COLORS.get(batch.status.casefold())
         return None
 
     def clear(self) -> None:
@@ -235,6 +257,9 @@ class HistoryEntryModel(QAbstractTableModel):
 
         if role == Qt.ItemDataRole.UserRole:
             return entry
+
+        if role == Qt.ItemDataRole.ForegroundRole and column == 3:
+            return _STATUS_COLORS.get(entry.status.casefold())
         return None
 
     def clear(self) -> None:

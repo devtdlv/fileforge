@@ -1,4 +1,4 @@
-"""Central design-system stylesheet for FileForge.
+"""Central design-system stylesheet for Junction.
 
 All widgets should rely on these shared rules rather than one-off styling.
 """
@@ -207,23 +207,57 @@ QPushButton#SecondaryButton:disabled {
 }
 
 /* ---------- Form controls ---------- */
-QLineEdit, QComboBox, QPlainTextEdit {
+QLineEdit, QComboBox, QPlainTextEdit, QSpinBox {
     background-color: #FFFFFF;
     border: 1px solid #9FB3C8;
     border-radius: 8px;
     padding: 8px 10px;
+    min-height: 18px;
     selection-background-color: #2F6FED;
     selection-color: #FFFFFF;
 }
 
-QLineEdit:focus, QComboBox:focus, QPlainTextEdit:focus {
+QLineEdit:focus, QComboBox:focus, QPlainTextEdit:focus, QSpinBox:focus {
     border: 2px solid #2F6FED;
     padding: 7px 9px;
 }
 
-QLineEdit:disabled, QComboBox:disabled {
+QLineEdit:disabled, QComboBox:disabled, QSpinBox:disabled {
     background-color: #F0F4F8;
     color: #829AB1;
+}
+
+QGroupBox {
+    background-color: #FFFFFF;
+    border: 1px solid #D9E2EC;
+    border-radius: 10px;
+    margin-top: 12px;
+    padding-top: 8px;
+    font-weight: 600;
+    color: #243B53;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 12px;
+    padding: 0 6px;
+    color: #243B53;
+}
+
+QSplitter::handle {
+    background-color: #D9E2EC;
+}
+
+QSplitter::handle:horizontal {
+    width: 4px;
+}
+
+QSplitter::handle:vertical {
+    height: 4px;
+}
+
+QSplitter::handle:hover {
+    background-color: #9FB3C8;
 }
 
 QCheckBox {
@@ -267,6 +301,50 @@ QHeaderView::section {
     border-right: 1px solid #D9E2EC;
     border-bottom: 1px solid #D9E2EC;
     font-weight: 600;
+    min-height: 28px;
+}
+
+QTableView::item {
+    padding: 4px 8px;
+}
+
+/* Status emphasis helpers (foreground only; never rely on color alone) */
+#StatusSuccess {
+    color: #0F7B3A;
+    font-weight: 600;
+}
+
+#StatusWarning {
+    color: #B54708;
+    font-weight: 600;
+}
+
+#StatusError {
+    color: #B42318;
+    font-weight: 600;
+}
+
+#StatValue {
+    background-color: transparent;
+    color: #102A43;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+#StatCaption {
+    background-color: transparent;
+    color: #627D98;
+    font-size: 12px;
+}
+
+#ShortcutCard {
+    background-color: #FFFFFF;
+    border: 1px solid #D9E2EC;
+    border-radius: 10px;
+}
+
+#ShortcutCard:hover {
+    border: 1px solid #2F6FED;
 }
 
 QProgressBar {

@@ -1,1 +1,1 @@
-"""PySide6 user interface package for FileForge."""
+"""PySide6 user interface package for Junction."""

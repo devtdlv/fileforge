@@ -1,4 +1,4 @@
-"""Shared pytest fixtures for FileForge."""
+"""Shared pytest fixtures for Junction."""
 
 from __future__ import annotations
 

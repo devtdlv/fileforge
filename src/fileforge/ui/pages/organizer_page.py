@@ -32,6 +32,7 @@ from fileforge.services.scanner import ScanProgress
 from fileforge.ui.models.organize_table_model import OrganizeTableModel
 from fileforge.ui.widgets.empty_state import EmptyStateWidget
 from fileforge.ui.widgets.page_header import PageHeader
+from fileforge.ui.widgets.table_utils import configure_result_table
 from fileforge.ui.workers.organize_worker import OrganizeWorkerController
 
 _MODE_LABELS = (
@@ -62,7 +63,7 @@ class OrganizerPage(QWidget):
 
         layout.addWidget(
             PageHeader(
-                "Organizer",
+                "Smart Organizer",
                 "Build a move plan, review every destination, then confirm before "
                 "any files are relocated. Overwrites are never silent.",
             )
@@ -165,12 +166,8 @@ class OrganizerPage(QWidget):
         self._table_model = OrganizeTableModel(self)
         self.results_table = QTableView()
         self.results_table.setModel(self._table_model)
-        self.results_table.setAlternatingRowColors(True)
-        self.results_table.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
-        self.results_table.setSelectionMode(QTableView.SelectionMode.SingleSelection)
-        self.results_table.setWordWrap(False)
+        configure_result_table(self.results_table, min_height=220)
         self.results_table.setTextElideMode(Qt.TextElideMode.ElideMiddle)
-        self.results_table.verticalHeader().setVisible(False)
         self.results_table.setVisible(False)
         self._configure_results_columns()
         layout.addWidget(self.results_table, stretch=1)
@@ -331,8 +328,9 @@ class OrganizerPage(QWidget):
         conflicts = len(plan.conflict_items)
         ready = len(plan.ready_items)
         self.summary_label.setText(
-            f"{plan.message}  |  Ready: {ready}  |  Conflicts/invalid: {conflicts}"
+            f"{len(plan.items)} items · {ready} ready · {conflicts} conflicts/invalid"
         )
+        self.summary_label.setToolTip(plan.message)
         self.summary_label.setVisible(True)
         self.status_label.setText(plan.message)
         self.apply_plan_button.setEnabled(plan.can_apply)
