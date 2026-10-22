@@ -1,32 +1,16 @@
 # FileForge User Guide
 
-This guide describes the **Milestone 2** application: the desktop shell plus the read-only Folder Scanner. Organizing, renaming, duplicate removal, and undo are not available yet.
+This guide describes **Milestone 3**: the desktop shell, read-only Folder Scanner, and preview-first Organizer. Duplicate removal, bulk renaming, and undo are not available yet.
 
 ## Starting FileForge
-
-From the project root in Windows PowerShell:
 
 ```powershell
 .\.venv\Scripts\python.exe -m fileforge
 ```
 
-On first launch, FileForge creates a local SQLite database under your Windows local application data folder (typically `%LOCALAPPDATA%\FileForge\fileforge.db`). Source files in the project tree are never used as the live database.
-
-If the database cannot be created (for example, the folder is not writable), FileForge shows an error dialog and exits cleanly.
-
-## Main window
-
-The window has:
-
-- A **sidebar** with FileForge branding and navigation
-- A **content area** for the selected page
-- A **status bar** showing the application version and useful status text
-
-Minimum recommended size is 1024×640. The layout resizes within normal desktop constraints. The full SQLite database path is shown on the Settings page, not in the status bar.
+On first launch, FileForge creates a local SQLite database under `%LOCALAPPDATA%\FileForge\fileforge.db`.
 
 ## Navigation
-
-Use the sidebar or keyboard shortcuts:
 
 | Shortcut | Page |
 |----------|------|
@@ -38,93 +22,57 @@ Use the sidebar or keyboard shortcuts:
 | Ctrl+6 | Operation History |
 | Ctrl+7 | Settings |
 
-The sidebar list is keyboard-focusable. Selected items use a clear highlight; focused items show a visible focus ring.
+## Folder Scanner
 
-## Pages
+Choose a folder, optionally include subfolders, and start a **read-only** metadata scan. Search and filter results. Cancel stops further traversal. Scanning never moves or deletes files.
 
-### Dashboard
+## Organizer
 
-Explains what FileForge is for, summarizes the safety approach, and offers a primary **Open Folder Scanner** action (also available via Ctrl+2). After you complete a scan in the current session, a short summary can appear on the Dashboard. That summary is not persisted across restarts. No fabricated metrics are shown.
+The Organizer relocates files using a preview-first workflow.
 
-### Folder Scanner
+### Modes
 
-The Folder Scanner builds a **read-only inventory** of a folder you explicitly choose.
+- **By file extension** - for example `Destination\jpg\photo.jpg`
+- **By file category** - Images, Documents, Videos, Audio, Archives, Other
+- **By modified year/month** - `Destination\YYYY\MM\filename`
 
-#### Choose a folder
+### Workflow
 
-1. Click **Choose Folder…**
-2. Select a directory in the native Windows picker
+1. Choose **Source Folder…** and **Destination Folder…**
+2. Select a mode and whether to include subfolders
+3. Click **Preview Plan**
+4. Review every proposed move in the table (relative source/destination paths,
+   rule, notes). Hover a path cell for the full absolute path.
+5. If conflicts exist, Apply stays disabled
+6. Click **Apply Organization Plan** and confirm the dialog
+7. Watch progress; click **Cancel** to stop between remaining moves
 
-FileForge does not automatically scan your home directory or other personal locations.
+### Safety protections
 
-#### Run a scan
+- Preview never modifies the filesystem
+- Apply requires an explicit confirmation dialog
+- Existing destination files are never overwritten
+- Case-insensitive destination collisions block Apply
+- Files that change after preview are rejected at execution time
+- Symbolic links and directory junctions are not followed
+- Cross-filesystem moves are refused (no copy-and-delete fallback)
+- Successful and failed moves are written to the SQLite journal
 
-1. Optionally toggle **Include subfolders** (on by default for recursive scanning)
-2. Click **Start Scan**
-3. Watch the status line for live counts of files, folders, and issues
+### Journal behavior
 
-Progress is indeterminate while the total is unknown. FileForge does not invent a completion percentage.
+Each apply creates a batch with per-file entries (`pending` → `success`/`failed`). Undo is **not** implemented in this milestone. If journaling cannot start, FileForge refuses to move files.
 
-#### Review results
+### Limitations
 
-The results table lists name, type, extension, size, modified time, and relative path. Columns are resizable and sortable. Use:
+- Only files are moved; empty source folders are left in place
+- Undo / reverse is not available yet
+- Operation History UI does not yet list journal batches
+- Very large trees keep the plan in memory
 
-- The search box to match file names or relative paths
-- The type filter for all types, files only, folders only, or a specific extension
+## Other pages
 
-A summary line shows total files, folders, skipped link/junction entries, total file size, and scan issues.
-
-#### Cancel a scan
-
-Click **Cancel** while a scan is running. The status changes to cancelled and cooperative cancellation stops further traversal.
-
-#### What scanning does not do
-
-- It does not follow symbolic links or directory junctions by default
-- It does not read file contents (metadata only)
-- It does not move, rename, overwrite, or delete files
-- It does not write into the scanned folder
-- Results are kept in memory for the current session only
-
-Completed, cancelled, and partially failed scans are labeled clearly. Permission problems and disappearing files are recorded as issues without crashing the whole scan.
-
-### Organizer
-
-Placeholder for preview-first organization plans. **Apply Organization Plan** is disabled.
-
-### Duplicate Finder
-
-Placeholder for duplicate review. **Delete Selected Duplicates** is disabled. Automatic deletion will never be the default behavior.
-
-### Bulk Renamer
-
-Placeholder for rename previews. **Apply Rename Plan** is disabled.
-
-### Operation History
-
-Shows that the operation journal foundation exists in the database. **Undo Last Operation** is disabled. Undo is not implemented and will only appear when it is safe and verifiable.
-
-### Settings
-
-Lets you:
-
-- Set an optional **display name** for this installation
-- Toggle **confirm before exiting**
-- View the **database path** (read-only)
-
-**Save Settings** writes values to the local SQLite database. These preferences never leave your machine.
-
-## What FileForge does not do yet
-
-- It does not organize, rename, or delete files.
-- It does not undo filesystem changes.
-- It does not upload data or call remote APIs.
-- It does not persist scan inventories between sessions.
+Duplicate Finder, Bulk Renamer, and undo remain placeholders with disabled actions. Settings still stores display name, exit confirmation, and shows the database path.
 
 ## Closing the application
 
-If a scan is running, FileForge asks whether to cancel it and exit. If exit confirmation is enabled (default), FileForge also asks before closing. You can turn exit confirmation off in Settings.
-
-## Getting help during development
-
-See `README.md` for install, test, and lint commands, and `docs/ARCHITECTURE.md` for how the code is organized.
+If a scan or organization job is running, FileForge asks before cancelling and exiting.

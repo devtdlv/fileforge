@@ -82,7 +82,7 @@ class MainWindow(QMainWindow):
         pages: list[tuple[str, QWidget]] = [
             ("dashboard", dashboard),
             ("scanner", scanner),
-            ("organizer", OrganizerPage()),
+            ("organizer", OrganizerPage(self._database)),
             ("duplicates", DuplicatesPage()),
             ("renamer", RenamerPage()),
             ("history", HistoryPage()),
@@ -148,6 +148,21 @@ class MainWindow(QMainWindow):
                 event.ignore()
                 return
             scanner.cancel_active_scan()
+
+        organizer = self._pages.get("organizer")
+        if isinstance(organizer, OrganizerPage) and organizer.is_busy:
+            answer = QMessageBox.question(
+                self,
+                "Organization in progress",
+                "An organization preview or apply is still running. "
+                "Cancel it and exit FileForge?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
+            )
+            if answer != QMessageBox.StandardButton.Yes:
+                event.ignore()
+                return
+            organizer.cancel_active_work()
 
         confirm = self._settings.get(SETTING_CONFIRM_EXIT, "1")
         if confirm == "0":

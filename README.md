@@ -6,26 +6,27 @@ Built with Python 3.13 and PySide6. All data stays on your machine. No cloud ser
 
 ## Current status
 
-**Milestone 2 (Read-only Folder Scanner)** is implemented on top of the Milestone 1 application shell:
+**Milestone 3 (Safe Smart Organizer)** builds on the shell and read-only Folder Scanner:
 
 - Desktop application window with sidebar navigation
 - Seven content pages (Dashboard through Settings)
-- SQLite foundation with schema versioning and settings storage
-- **Folder Scanner**: choose a directory, scan metadata recursively or not, filter/sort results, cancel in-progress scans
-- Background scanning that keeps the UI responsive
-- Safety architecture documented for future file operations
+- SQLite foundation with schema versioning, settings, and an operation journal
+- **Folder Scanner**: read-only inventory with filter/sort/cancel
+- **Organizer**: preview-first moves by extension, category, or modified year/month
+- Background workers for scanning, preview, and apply
+- Conflict detection with no silent overwrites
 - Automated tests and Ruff lint configuration
 
-**Not yet implemented:** organizing, duplicate detection/deletion, bulk renaming, undo/recovery, scan result persistence across restarts, and packaging with PyInstaller. Unfinished feature pages still show clear empty states with disabled actions.
+**Not yet implemented:** duplicate detection/deletion, bulk renaming, undo/recovery UI, scan inventory persistence across restarts, and PyInstaller packaging.
 
 ## Planned features
 
 | Feature | Status |
 |---------|--------|
 | Application shell and navigation | Available |
-| Local SQLite settings and journal foundation | Available |
+| Local SQLite settings and operation journal | Available |
 | Folder Scanner inventory (read-only) | Available |
-| Rules-based Organizer with preview | Planned |
+| Rules-based Organizer with preview | Available |
 | Duplicate Finder (no automatic deletion) | Planned |
 | Bulk Renamer with conflict checks | Planned |
 | Operation History and safe undo | Planned |
@@ -72,16 +73,23 @@ Expected: `Python 3.13.x`
 .\.venv\Scripts\python.exe -m fileforge
 ```
 
+## Organizer quick start
+
+1. Open **Organizer** (Ctrl+3).
+2. Choose a **source** folder and a **destination** folder.
+3. Select a mode: extension, category, or modified year/month.
+4. Click **Preview Plan**. Preview never modifies files.
+5. Review the before/after table. Conflicts disable Apply.
+6. Click **Apply Organization Plan** and confirm the dialog.
+7. Use **Cancel** to stop an in-progress preview or apply between moves.
+
+Moves are journaled in SQLite. Undo is not implemented yet.
+
 ## Folder Scanner quick start
 
-1. Open **Folder Scanner** (Ctrl+2) or use the Dashboard CTA.
-2. Click **Choose Folder…** and select a directory. FileForge never auto-scans your home folder.
-3. Keep **Include subfolders** checked for a recursive inventory, or clear it for top-level only.
-4. Click **Start Scan**. Progress is indeterminate (counts update; no fake percentages).
-5. Use search and type filters to narrow results. Click column headers to sort.
-6. Click **Cancel** to stop an in-progress scan.
-
-Scanning reads metadata only. It does not move, rename, overwrite, or delete files.
+1. Open **Folder Scanner** (Ctrl+2).
+2. Choose a folder and click **Start Scan**.
+3. Filter/sort results as needed. Scanning is read-only.
 
 ## Tests and lint
 
@@ -92,8 +100,6 @@ Scanning reads metadata only. It does not move, rename, overwrite, or delete fil
 
 ## Safety philosophy
 
-FileForge is designed so that destructive or irreversible filesystem changes are hard to trigger by accident:
-
 1. Preview before applying changes.
 2. No silent file overwrites.
 3. No automatic deletion of duplicates.
@@ -103,13 +109,11 @@ FileForge is designed so that destructive or irreversible filesystem changes are
 7. No filesystem changes during scanning or preview.
 8. Tests use temporary directories, never personal files.
 
-Milestone 2 scanning is **read-only**. Organize, rename, delete, and undo remain unimplemented.
-
 ## Development roadmap
 
 1. **Milestone 1** - Project foundation, UI shell, SQLite, tests, docs
-2. **Milestone 2** - Folder Scanner and read-only inventory *(current)*
-3. **Milestone 3** - Organizer with preview and confirmed apply
+2. **Milestone 2** - Folder Scanner and read-only inventory
+3. **Milestone 3** - Organizer with preview and confirmed apply *(current)*
 4. **Milestone 4** - Duplicate Finder with explicit user decisions
 5. **Milestone 5** - Bulk Renamer with conflict handling
 6. **Milestone 6** - Operation History and safe undo
@@ -117,12 +121,12 @@ Milestone 2 scanning is **read-only**. Organize, rename, delete, and undo remain
 
 ## Screenshot gallery
 
-> **Pending.** Portfolio screenshots may be added under `docs/screenshots/` after a safe temporary-folder demo. No AI-generated images are included.
+> **Pending.** Portfolio screenshots may be added under `docs/screenshots/` from safe demonstration data only. No AI-generated images are included.
 
 ## Documentation
 
-- [User Guide](docs/USER_GUIDE.md) - using the application shell and Folder Scanner
-- [Architecture](docs/ARCHITECTURE.md) - package layout and separation of concerns
+- [User Guide](docs/USER_GUIDE.md)
+- [Architecture](docs/ARCHITECTURE.md)
 
 ## License
 

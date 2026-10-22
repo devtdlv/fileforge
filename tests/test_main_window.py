@@ -95,6 +95,7 @@ def test_unfinished_actions_are_disabled(main_window: MainWindow) -> None:
     assert scanner.choose_folder_button.isEnabled() is True
     assert scanner.start_button.isEnabled() is False
     assert organizer.apply_plan_button.isEnabled() is False
+    assert organizer.preview_button.isEnabled() is False
     assert duplicates.delete_selected_button.isEnabled() is False
     assert renamer.apply_rename_button.isEnabled() is False
     assert history.undo_button.isEnabled() is False

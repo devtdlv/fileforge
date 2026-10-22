@@ -26,14 +26,14 @@ class HistoryPage(QWidget):
         )
         layout.addWidget(
             EmptyStateWidget(
-                title="No operations recorded yet",
+                title="History browser not available yet",
                 body=(
-                    "The database includes an operation journal table for "
-                    "future milestones. Undo is not implemented in this "
-                    "release. This page will list journal entries once file "
-                    "operations exist."
+                    "Organization applies are recorded in the local SQLite "
+                    "journal (batches and per-file entries). This page does "
+                    "not list them yet, and undo is not implemented. A later "
+                    "milestone will add review and safe reverse when verifiable."
                 ),
-                badge="Journal foundation ready",
+                badge="Journaling active; undo later",
             )
         )
 

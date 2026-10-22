@@ -6,7 +6,7 @@ import sqlite3
 from collections.abc import Callable, Sequence
 
 # Current schema version applied by the migrator.
-CURRENT_SCHEMA_VERSION = 1
+CURRENT_SCHEMA_VERSION = 2
 
 Migration = Callable[[sqlite3.Connection], None]
 
@@ -37,8 +37,48 @@ def _migration_001(connection: sqlite3.Connection) -> None:
     )
 
 
+def _migration_002(connection: sqlite3.Connection) -> None:
+    """Add batch/entry tables for detailed organization journaling."""
+    connection.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS operation_batches (
+            id TEXT PRIMARY KEY NOT NULL,
+            operation_type TEXT NOT NULL,
+            status TEXT NOT NULL,
+            summary TEXT NOT NULL DEFAULT '',
+            source_root TEXT NOT NULL DEFAULT '',
+            destination_root TEXT NOT NULL DEFAULT '',
+            mode TEXT NOT NULL DEFAULT '',
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            completed_at TEXT,
+            details_json TEXT NOT NULL DEFAULT '{}'
+        );
+
+        CREATE TABLE IF NOT EXISTS operation_entries (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            batch_id TEXT NOT NULL,
+            operation_type TEXT NOT NULL DEFAULT 'move',
+            source_path TEXT NOT NULL,
+            destination_path TEXT NOT NULL,
+            status TEXT NOT NULL,
+            error_details TEXT NOT NULL DEFAULT '',
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            completed_at TEXT,
+            FOREIGN KEY (batch_id) REFERENCES operation_batches(id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_operation_entries_batch_id
+            ON operation_entries (batch_id);
+
+        CREATE INDEX IF NOT EXISTS idx_operation_batches_created_at
+            ON operation_batches (created_at DESC);
+        """
+    )
+
+
 MIGRATIONS: Sequence[tuple[int, Migration]] = (
     (1, _migration_001),
+    (2, _migration_002),
 )
 
 
