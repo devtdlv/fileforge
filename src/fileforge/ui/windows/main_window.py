@@ -85,7 +85,7 @@ class MainWindow(QMainWindow):
             ("organizer", OrganizerPage(self._database)),
             ("duplicates", DuplicatesPage()),
             ("renamer", RenamerPage(self._database)),
-            ("history", HistoryPage()),
+            ("history", HistoryPage(self._database)),
             ("settings", SettingsPage(self._settings, Path(self._database.path))),
         ]
         for page_id, widget in pages:
@@ -192,6 +192,10 @@ class MainWindow(QMainWindow):
                 event.ignore()
                 return
             renamer.cancel_active_work()
+
+        history = self._pages.get("history")
+        if isinstance(history, HistoryPage) and history.is_busy:
+            history.cancel_active_work()
 
         confirm = self._settings.get(SETTING_CONFIRM_EXIT, "1")
         if confirm == "0":

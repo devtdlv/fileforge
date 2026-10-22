@@ -7,78 +7,70 @@ FileForge is a local-first Windows desktop app with:
 - A maintainable `src/` package layout
 - A PySide6 UI shell and shared design system
 - SQLite persistence with versioned migrations
-- A reusable read-only folder scanner
-- A preview-first organizer with fail-closed execution and journaling
-- A read-only duplicate detection engine (size filter + SHA-256)
-- A preview-first bulk renamer with conflict detection and journaling
+- Read-only folder scanning and duplicate detection
+- Preview-first organizer and bulk renamer with journaling
+- Read-only Operation History over the shared journal
 
 ## Package layout
 
 ```
 src/fileforge/
-  core/                 # paths, safety principles
+  core/
   database/
     connection.py
     schema.py           # migrations (currently v2)
     settings_store.py
-    journal.py          # operation batches/entries
+    journal.py          # write path for batches/entries
   services/
-    scanner/            # read-only inventory engine
-    organizer/          # preview + safe moves
-    duplicates/         # size + SHA-256 grouping
+    scanner/
+    organizer/
+    duplicates/
     renamer/
-      models.py         # rules, items, plan, execution result
-      names.py          # stem/extension policy + Windows validation
-      rules.py          # ordered rule application
-      planner.py        # dry-run preview + collisions
-      executor.py       # staged renames + journal hooks
+    history/
+      models.py         # filters, batch/entry summaries, labels
+      queries.py        # parameterized read-only SQL
   ui/
-    models/             # Qt table models
-    workers/            # QThread controllers
+    models/
+    workers/
     pages/
     windows/
 ```
 
-## Bulk renamer design
+## Operation History design
 
-1. `RenamePlanner.inventory` reuses `FolderScanner` (no symlink/junction follow; dedupe by device/inode).
-2. `RenamePlanner.build_plan` applies rules in fixed order to selected files only and classifies Ready / Unchanged / Conflict / Invalid / Missing.
-3. Collisions are case-insensitive within each parent directory. Occupied destinations block apply unless the occupant is another selected file that is itself renaming away (chain).
-4. `RenameExecutor` revalidates fingerprints before each rename. Independent renames use `os.rename` (fails if destination exists on Windows). Chains, swaps, and case-only renames use a two-phase temp-name strategy in the same directory, then finalize. Mid-stage cancellation is not honored once a staged directory group starts; rollback restores temps to original names when possible.
-5. Successful and failed outcomes are journaled as `operation_type=bulk_rename` / entry `rename` via the shared `OperationJournal`. Schema v2 tables are reused; no destructive migration.
-6. Renames are not filesystem transactions. Partial batches are possible; undo is not implemented.
+1. `HistoryQueryService` reads `operation_batches` and `operation_entries` only (no writes).
+2. Listing uses `LIMIT`/`OFFSET` (default 50, max 200) with `ORDER BY created_at, id` for stable paging.
+3. Filters: `operation_type` (`organize_move` / `bulk_rename`), batch `status`, and literal `LIKE` search with `ESCAPE '\'` after escaping `%`, `_`, and `\`.
+4. Entry aggregates (`success` / `failed` / `pending`) are computed with conditional `SUM` over a `LEFT JOIN`.
+5. Background loads open a **separate** short-lived `DatabaseManager` connection on a worker thread (same pattern as Organizer/Renamer apply), then close it.
+6. The UI never calls undo, delete, or journal mutation APIs.
 
-### Rule order
+### Known journaled operation types
 
-`search/replace → prefix → suffix → numbering → case (stem only)`
+| Layer | Values |
+|-------|--------|
+| Batch | `organize_move`, `bulk_rename` |
+| Entry | `move`, `rename` |
+| Batch status | `pending`, `completed`, `partial`, `cancelled`, `failed` |
+| Entry status | `pending`, `success`, `failed` |
 
-### Extension policy
+Schema remains at **v2**; no migration was required for Milestone 6.
 
-Final `Path` suffix is preserved (including casing). Stem transforms never rewrite the extension unless a future explicit feature is added.
+## Bulk renamer / organizer / duplicates
 
-## Duplicate detection design
-
-Unchanged from Milestone 4: size filter → chunked SHA-256 → hard-link-aware savings. UI refinements separate status text from statistics so completion messaging is not duplicated. Page headers allow subtitle wrapping without clipping.
-
-## Organizer design
-
-1. `OrganizePlanner` uses `FolderScanner` to list files, then maps each file to a destination by mode.
-2. Conflicts mark the plan `BLOCKED`.
-3. `OrganizeExecutor` re-validates before `Path.rename`, refuses overwrites, journals outcomes.
+Unchanged from Milestones 3–5. Organizer and Renamer continue to write through `OperationJournal`. Duplicate Finder remains read-only and does not journal.
 
 ## Database schema (v2)
 
 - `settings`
-- `operation_journal` (summary rows)
-- `operation_batches` (batch id, roots, mode, status)
-- `operation_entries` (per-file source/destination/status/error)
-
-Organizer writes `organize_move`. Renamer writes `bulk_rename`. Duplicate Finder does not write journal rows.
+- `operation_journal` (legacy summary rows)
+- `operation_batches`
+- `operation_entries`
 
 ## Safety boundaries
 
-See `fileforge.core.safety`. Scanning, duplicate detection, and all previews are read-only. Apply paths require confirmation, refuse overwrites, and fail closed when the journal cannot start. Undo is not available.
+See `fileforge.core.safety`. Previews and history browsing are read-only. Apply paths require confirmation and refuse overwrites. Undo is not implemented.
 
 ## Testing
 
-Temporary directories only. Coverage includes renamer rules, planner conflicts, staged chain execution, journaling, renamer UI confirmation, duplicate messaging, and prior scanner/organizer suites.
+Temporary SQLite databases only. Coverage includes history filters, search escaping, pagination, entry details, UI navigation/refresh, and prior feature suites.

@@ -1,6 +1,6 @@
 # FileForge User Guide
 
-This guide describes **Milestone 5**: the desktop shell, Folder Scanner, Organizer, Duplicate Finder, and preview-first Bulk Renamer. Undo and Operation History browsing are not available yet.
+This guide describes **Milestone 6**: the desktop shell, Folder Scanner, Organizer, Duplicate Finder, Bulk Renamer, and read-only Operation History. Undo and restore are not available.
 
 ## Starting FileForge
 
@@ -22,94 +22,77 @@ On first launch, FileForge creates a local SQLite database under `%LOCALAPPDATA%
 | Ctrl+6 | Operation History |
 | Ctrl+7 | Settings |
 
-## Bulk Renamer
+## Operation History
 
-Rename many files safely with a mandatory preview.
+Operation History browses batches recorded when you **apply** Organizer moves or Bulk Renamer changes. Duplicate Finder and Folder Scanner do not write history rows.
 
-### Supported rules
+### What is recorded
 
-| Rule | Behavior |
-|------|----------|
-| Prefix | Inserted at the start of the stem |
-| Suffix | Inserted at the end of the stem (before the extension) |
-| Search / replace | Literal text replacement on the stem only (no regular expressions) |
-| Sequential numbering | Appends a padded number with a configurable separator |
-| Case | Lower / upper / title case applied to the **stem only** |
+Each confirmed apply creates:
 
-### Rule application order
+- A **batch** (`organize_move` or `bulk_rename`) with status, roots, mode, timestamps, and summary
+- **Entries** for files that were journaled (source path, destination path, outcome, errors)
 
-1. Search / replace
-2. Prefix
-3. Suffix
-4. Sequential numbering
-5. Case transformation (stem only)
+Entry outcomes in the journal are typically `success`, `failed`, or `pending` (incomplete). Files cancelled before a journal row was created are not listed.
 
-Example: `IMG_001.JPG` with replace `IMG`→`Holiday`, suffix `_edited`, lowercase stem → `holiday_001_edited.JPG`.
+### How to browse batches
 
-### Extension policy
+1. Open **Operation History** (Ctrl+6). The page loads automatically on first visit.
+2. Review summary counts (all batches, completed, partial, failed, cancelled).
+3. Select a row in the batch table for details.
 
-Extensions are preserved by default, including their original casing (`photo.JPG` stays `.JPG`). Multi-dot names use Python’s final-suffix rule (`archive.tar.gz` → stem `archive.tar`, ext `.gz`). Extensionless files and dotfiles are supported.
+Columns include when, type, status, file counts (total / succeeded / failed / pending), source, and destination. Hover a row for full paths and the batch id.
 
-Invalid Windows names (illegal characters, reserved device names, trailing dots/spaces, empty names, excessive length) are shown as **Invalid** in the preview. FileForge does not silently sanitize names into something unexpected.
+### How to inspect file-level outcomes
 
-### How to select files
+The lower table lists journal entries for the selected batch: original path, destination, operation (Move/Rename), outcome, error text, and completion time. Hover for absolute paths. A failed entry shows the recorded error; history does not invent success.
 
-1. Choose a folder and optionally include subfolders.
-2. Click **Load Files**.
-3. Check individual files, or use **Select All** / **Clear Selection**.
-4. The selection count updates as you change checkboxes.
-5. Directories are never renamed. Symbolic links are skipped.
+### Filtering and searching
 
-### How to preview
+- **Type**: All, Organizer, or Bulk Renamer
+- **Status**: All, Completed, Partial, Failed, Cancelled, Pending
+- **Sort**: Newest first or oldest first
+- **Search**: Matches source/destination roots, summary, mode, entry paths, and error text (parameterized; wildcards are treated literally)
+- **Clear Filters** resets all controls
+- **Previous / Next** paginate large histories (50 batches per page)
 
-Click **Preview Renames**. The table shows original name, proposed name, relative folder, status, and notes. Hover a row for absolute paths. Changing rules or selection invalidates the preview; regenerate before applying.
+Filters combine with AND semantics.
 
-Statuses include Ready, Unchanged, Conflict, Invalid, Missing, and (at execution) Stale / Success / Failed / Cancelled.
+### Refresh behavior
 
-### Interpreting conflicts
+Click **Refresh** after new Organizer or Renamer applies. Opening the page also loads history on first show. Viewing history never modifies files or journal rows.
 
-Conflicts appear when:
+### Local database storage
 
-- Two selected files would share the same target name
-- The target already exists and is not being renamed away
-- Case-insensitive collisions would overwrite another file
-- The proposed name is illegal on Windows
-
-FileForge never auto-appends `(1)` or similar to “fix” collisions.
-
-### How to apply safely
-
-1. Ensure the preview status is ready (Apply enabled).
-2. Click **Apply Renames** and confirm the dialog.
-3. Watch progress; **Cancel** stops between safe boundaries.
-4. Outcomes are written to the SQLite operation journal (`bulk_rename`).
-
-Undo is **not** implemented. Renames are not claimed to be atomic across the whole batch. Chains and case-only renames use temporary names in the same folder, then finalize; leftover temps should not remain after a successful run.
+History lives in the same local SQLite file as settings and the operation journal. Nothing is uploaded.
 
 ### Limitations
 
-- No undo / reverse from FileForge
-- No regular expressions
-- No intentional extension-changing mode
-- Directories are not renamed
-- Global rules apply to every selected file (per-file rule sets are not offered)
+- Undo, redo, retry, replay, delete history, and edit journal are **not** available
+- The Undo button stays disabled
+- “Skipped” is not a separate journaled entry status; incomplete work may appear as `pending` or may be absent if never journaled
+- Very large entry lists are capped when loading a single batch’s details
+
+## Bulk Renamer
+
+Select files, configure rules (search/replace → prefix → suffix → numbering → case), preview, then confirm apply. Extensions are preserved by default. See prior milestone notes in the docs for rule details. Undo is not available.
 
 ## Folder Scanner
 
-Choose a folder, optionally include subfolders, and start a **read-only** metadata scan. Search and filter results. Cancel stops further traversal. Scanning never moves or deletes files.
+Read-only metadata inventory of a chosen folder. Never moves or deletes files.
 
 ## Duplicate Finder
 
-Identifies files with identical content using size filtering and SHA-256. Strictly read-only: no delete, quarantine, move, or rename. Potential savings are theoretical. Completion status and statistics are shown as separate lines (status above, counts below).
+Read-only content duplicate detection (size filter + SHA-256). No deletion.
 
 ## Organizer
 
-Preview-first file moves by extension, category, or modified year/month. Apply requires confirmation. Overwrites are refused. Moves are journaled. Undo is not available.
+Preview-first moves by extension, category, or year/month. Apply requires confirmation. Overwrites are refused. Moves are journaled. Undo is not available.
 
-## Other pages
+## Settings
 
-Operation History remains a placeholder. Settings stores display name, exit confirmation, and shows the database path.
+Display name, exit confirmation, and database path. Closing while a long job runs prompts to cancel first.
 
 ## Closing the application
 
-If a folder scan, organization job, duplicate scan, or rename job is running, FileForge asks before cancelling and exiting.
+If a scan, organization, duplicate scan, rename, or history load is active, FileForge cancels or asks before exit as appropriate.

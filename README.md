@@ -6,7 +6,7 @@ Built with Python 3.13 and PySide6. All data stays on your machine. No cloud ser
 
 ## Current status
 
-**Milestone 5 (Safe Bulk Renamer)** builds on the shell, Folder Scanner, Organizer, and Duplicate Finder:
+**Milestone 6 (Professional Operation History)** builds on the shell, Scanner, Organizer, Duplicate Finder, and Bulk Renamer:
 
 - Desktop application window with sidebar navigation
 - Seven content pages (Dashboard through Settings)
@@ -15,11 +15,12 @@ Built with Python 3.13 and PySide6. All data stays on your machine. No cloud ser
 - **Organizer**: preview-first moves by extension, category, or modified year/month
 - **Duplicate Finder**: staged size filtering + SHA-256 grouping (strictly read-only)
 - **Bulk Renamer**: preview-first renames with conflict detection and journaling
-- Background workers for scanning, organization, duplicates, and renaming
+- **Operation History**: read-only browser for journaled batches and file outcomes
+- Background workers for scanning, organization, duplicates, renaming, and history loads
 - Conflict detection with no silent overwrites
 - Automated tests and Ruff lint configuration
 
-**Not yet implemented:** duplicate deletion/cleanup, undo/recovery UI, Operation History browsing, scan inventory persistence across restarts, and PyInstaller packaging.
+**Not yet implemented:** duplicate deletion/cleanup, undo/recovery, scan inventory persistence across restarts, and PyInstaller packaging.
 
 ## Planned features
 
@@ -31,7 +32,8 @@ Built with Python 3.13 and PySide6. All data stays on your machine. No cloud ser
 | Rules-based Organizer with preview | Available |
 | Duplicate Finder (detection only, no deletion) | Available |
 | Bulk Renamer with conflict checks | Available |
-| Operation History and safe undo | Planned |
+| Operation History (read-only browse) | Available |
+| Safe undo / recovery | Planned |
 | Storage review insights | Planned |
 | PyInstaller packaging | Planned |
 
@@ -75,17 +77,20 @@ Expected: `Python 3.13.x`
 .\.venv\Scripts\python.exe -m fileforge
 ```
 
+## Operation History quick start
+
+1. Open **Operation History** (Ctrl+6).
+2. Review summary counts and the batch table (newest first by default).
+3. Select a batch to inspect per-file outcomes, including recorded errors.
+4. Filter by Organizer / Bulk Renamer, status, or search paths.
+5. Click **Refresh** after new Organizer or Renamer applies.
+
+History is read-only. Undo is not available.
+
 ## Bulk Renamer quick start
 
 1. Open **Bulk Renamer** (Ctrl+5).
-2. Choose a folder, optionally include subfolders, and click **Load Files**.
-3. Select the files to rename (Select All / Clear Selection).
-4. Configure rules (prefix, suffix, search/replace, numbering, case).
-5. Click **Preview Renames**. Preview never modifies files.
-6. Resolve any conflicts shown in the preview table.
-7. Click **Apply Renames** and confirm the dialog.
-
-Rule order: search/replace → prefix → suffix → numbering → case (stem only). Extensions are preserved by default. Undo is not available.
+2. Load files, configure rules, preview, then confirm apply.
 
 ## Duplicate Finder quick start
 
@@ -126,8 +131,8 @@ Rule order: search/replace → prefix → suffix → numbering → case (stem on
 2. **Milestone 2** - Folder Scanner and read-only inventory
 3. **Milestone 3** - Organizer with preview and confirmed apply
 4. **Milestone 4** - Duplicate Finder (detection only)
-5. **Milestone 5** - Bulk Renamer (preview-first) *(current)*
-6. **Milestone 6** - Operation History and safe undo
+5. **Milestone 5** - Bulk Renamer (preview-first)
+6. **Milestone 6** - Operation History (read-only) *(current)*
 7. **Milestone 7** - Packaging, polish, and portfolio screenshots
 
 ## Screenshot gallery
