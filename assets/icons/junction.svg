@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Junction">
+  <!-- Deep navy rounded tile (Windows 11 app-icon silhouette). -->
+  <rect width="256" height="256" rx="54" ry="54" fill="#0F2744"/>
+
+  <!--
+    Stylized uppercase J:
+    - thick stem readable at 16px
+    - top becomes an upward arrow (organization / lift)
+    - small cyan branch arrow to the upper-right (routing / connection)
+  -->
+
+  <!-- Soft blue under-glow for the glyph (flat enough for small sizes). -->
+  <path
+    fill="#1B4F8A"
+    d="M118 58h28v112c0 22-14 38-38 38s-38-16-38-38h24c0 10 6 16 14 16s14-6 14-16V58z"/>
+
+  <!-- Primary pale J stem + hook -->
+  <path
+    fill="#EAF3FF"
+    d="M122 72h20v102c0 16-10 28-28 28s-28-12-28-28h18c0 7 4 12 10 12s10-5 10-12V72z"/>
+
+  <!-- Upward arrow head at the top of the J -->
+  <path
+    fill="#EAF3FF"
+    d="M132 34 L168 78 L146 78 L146 72 L118 72 L118 78 L96 78 Z"/>
+
+  <!-- Cyan accent edge on the rising tip -->
+  <path
+    fill="#4DB8FF"
+    d="M132 34 L156 66 L146 66 L146 72 L118 72 L118 66 L108 66 Z"/>
+
+  <!-- Branching arrow toward upper-right -->
+  <path
+    fill="#2F6FED"
+    d="M148 96 L188 62 L200 74 L160 108 Z"/>
+  <path
+    fill="#5EC8FF"
+    d="M188 62 L214 58 L204 84 L196 76 L188 62 Z"/>
+</svg>

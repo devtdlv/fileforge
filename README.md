@@ -2,8 +2,8 @@
 
 Local-first Windows desktop toolkit for scanning folders, organizing files, finding duplicates, and renaming in bulk, with preview-first safety and a SQLite operation journal.
 
-**Stack:** Python 3.13 · PySide6 · SQLite · pytest · Ruff
-**Status:** Milestone 7 (UI polish, Junction branding, and portfolio readiness). Packaging is not included yet.
+**Stack:** Python 3.13 · PySide6 · SQLite · pytest · Ruff · PyInstaller
+**Status:** Milestone 8 (Windows executable packaging). Windows release package prepared; public release pending.
 **Repository:** [github.com/devtdlv/junction](https://github.com/devtdlv/junction)
 
 ## Overview
@@ -39,12 +39,6 @@ Authentic captures from the running PySide6 application (disposable demo files o
 |--------------|-------------------|
 | ![Bulk Renamer](docs/screenshots/05-bulk-renamer.png) | ![Operation History](docs/screenshots/06-operation-history.png) |
 
-To regenerate screenshots locally:
-
-```powershell
-.\.venv\Scripts\python.exe tools\capture_portfolio_screenshots.py
-```
-
 ## Safety philosophy
 
 - Local-first: data stays on this machine
@@ -56,7 +50,26 @@ To regenerate screenshots locally:
 - No automatic duplicate deletion
 - Undo is not implemented yet (Operation History is browse-only)
 
-## Installation (Windows)
+## Windows package (portable ZIP)
+
+Windows release package prepared; public GitHub release pending.
+
+When published, users will:
+
+1. Download `Junction-v0.1.0-windows-x64.zip`
+2. Extract the `Junction` folder
+3. Run `Junction.exe` (keep `_internal` beside it)
+4. Optionally verify the published SHA-256 checksum
+
+**Requirements:** Windows 10+ x64. Python is not required for the packaged build.
+
+**Unsigned warning:** The executable is not digitally signed. SmartScreen may show a warning on first launch.
+
+**History location:** `%LOCALAPPDATA%\FileForge\fileforge.db` (legacy folder name preserved so prior history remains accessible).
+
+See [docs/RELEASE_GUIDE.md](docs/RELEASE_GUIDE.md) and [docs/RELEASE_NOTES_v0.1.0.md](docs/RELEASE_NOTES_v0.1.0.md).
+
+## Installation from source (Windows)
 
 Requires Python **3.13** on Windows 10 or later.
 
@@ -73,11 +86,29 @@ Launch:
 .\.venv\Scripts\python.exe -m fileforge
 ```
 
+## Build the Windows executable
+
+Icon master artwork lives in `assets/icons/junction.svg`. Raster outputs:
+
+```powershell
+.\.venv\Scripts\python.exe tools\render_junction_icon.py
+.\tools\build_windows.ps1 -Clean
+```
+
+Outputs:
+
+- `dist/Junction/Junction.exe` (embeds `Junction.ico`)
+- `release/Junction-v0.1.0-windows-x64.zip`
+- `release/Junction-v0.1.0-windows-x64.zip.sha256`
+
+The executable is unsigned. Windows may cache Explorer icons; if a rebuild looks unchanged in File Explorer, refresh the icon cache or reopen the folder.
+
 ## Testing
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest
 .\.venv\Scripts\python.exe -m ruff check .
+.\.venv\Scripts\python.exe tools\smoke_packaged_junction.py
 ```
 
 ## Architecture
@@ -85,7 +116,8 @@ Launch:
 - **PySide6 UI** with sidebar navigation and per-feature pages
 - **Pure-Python services** for scanning, planning, hashing, renaming, and history queries
 - **Background workers** (`QThread`) so long scans do not freeze the GUI
-- **SQLite** settings store and operation journal under `%LOCALAPPDATA%\FileForge\` (legacy folder name kept so existing history remains accessible after the Junction rename)
+- **SQLite** settings store and operation journal under `%LOCALAPPDATA%\FileForge\`
+- **PyInstaller onedir** packaging under `packaging/Junction.spec`
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/USER_GUIDE.md](docs/USER_GUIDE.md).
 
@@ -93,14 +125,15 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/USER_GUIDE.md](docs/U
 
 - No undo / redo of past operations
 - Duplicate Finder does not delete or quarantine files
-- No packaged Windows executable yet (run from source)
+- Packaged EXE is unsigned
+- No Windows installer (portable ZIP only)
 - Primary testing target is Windows
 - Scanner and Duplicate Finder results are session-only (not journaled)
 
 ## Roadmap
 
-- Windows executable packaging and release validation (Milestone 8)
-- Optional future enhancements: undo when safe, richer settings, storage insights
+- Public GitHub Release for v0.1.0 after maintainer verification
+- Optional future enhancements: code signing, undo when safe, richer settings, storage insights
 
 ## License
 

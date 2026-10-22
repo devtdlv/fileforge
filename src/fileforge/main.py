@@ -7,10 +7,11 @@ import sys
 from pathlib import Path
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QGuiApplication
+from PySide6.QtGui import QGuiApplication, QIcon
 from PySide6.QtWidgets import QApplication, QMessageBox
 
 from fileforge import __app_name__, __version__
+from fileforge.core.resources import application_icon_path
 from fileforge.database.connection import DatabaseError, DatabaseManager
 from fileforge.database.settings_store import SettingsStore
 from fileforge.ui.windows.main_window import MainWindow
@@ -75,7 +76,21 @@ def create_application(argv: list[str] | None = None) -> QApplication:
     app.setApplicationName(__app_name__)
     app.setApplicationVersion(__version__)
     app.setOrganizationName(__app_name__)
+    icon = _load_application_icon()
+    if icon is not None:
+        app.setWindowIcon(icon)
     return app
+
+
+def _load_application_icon() -> QIcon | None:
+    """Load the Junction icon from package resources when present."""
+    path = application_icon_path()
+    if not path.is_file():
+        return None
+    icon = QIcon(str(path))
+    if icon.isNull():
+        return None
+    return icon
 
 
 def create_main_window(

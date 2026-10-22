@@ -16,12 +16,15 @@ htmlcov/
 .tox/
 .nox/
 
-# Build and packaging
+# Build and packaging outputs
 build/
 dist/
+release/
 *.egg-info/
 *.egg
 pip-wheel-metadata/
+Junction-v*-windows-x64.zip
+Junction-v*-windows-x64.zip.sha256
 
 # Local application databases and runtime data
 *.db
@@ -56,7 +59,5 @@ temp/
 Thumbs.db
 desktop.ini
 
-# PyInstaller
-*.spec
 # Keep intentional screenshots under docs/screenshots/
-# (do not ignore docs/screenshots/)
+# Tracked packaging specs live under packaging/

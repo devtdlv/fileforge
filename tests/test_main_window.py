@@ -32,6 +32,7 @@ def test_main_window_constructs(main_window: MainWindow) -> None:
     assert main_window.minimumWidth() >= 1024
     assert main_window.minimumHeight() >= 640
     assert QApplication.instance() is not None
+    assert not main_window.windowIcon().isNull()
     status = main_window.statusBar()
     assert status is not None
     message = status.currentMessage()

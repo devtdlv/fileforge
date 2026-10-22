@@ -1,0 +1,36 @@
+# UTF-8
+#
+# Windows VERSIONINFO resource for Junction.exe (PyInstaller).
+# Keep ProductVersion / FileVersion aligned with fileforge.__version__.
+VSVersionInfo(
+  ffi=FixedFileInfo(
+    filevers=(0, 1, 0, 0),
+    prodvers=(0, 1, 0, 0),
+    mask=0x3F,
+    flags=0x0,
+    OS=0x40004,
+    fileType=0x1,
+    subtype=0x0,
+    date=(0, 0),
+  ),
+  kids=[
+    StringFileInfo(
+      [
+        StringTable(
+          "040904B0",
+          [
+            StringStruct("CompanyName", "devtdlv"),
+            StringStruct("FileDescription", "Junction - Local-First File Toolkit"),
+            StringStruct("FileVersion", "0.1.0"),
+            StringStruct("InternalName", "Junction"),
+            StringStruct("LegalCopyright", "Copyright (c) Junction Contributors. MIT License."),
+            StringStruct("OriginalFilename", "Junction.exe"),
+            StringStruct("ProductName", "Junction"),
+            StringStruct("ProductVersion", "0.1.0"),
+          ],
+        )
+      ]
+    ),
+    VarFileInfo([VarStruct("Translation", [1033, 1200])]),
+  ],
+)

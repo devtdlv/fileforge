@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PySide6.QtGui import QCloseEvent
+from PySide6.QtGui import QCloseEvent, QIcon
 from PySide6.QtWidgets import (
+    QApplication,
     QHBoxLayout,
     QMainWindow,
     QMessageBox,
@@ -15,6 +16,7 @@ from PySide6.QtWidgets import (
 )
 
 from fileforge import __app_name__, __version__
+from fileforge.core.resources import application_icon_path
 from fileforge.database.connection import DatabaseManager
 from fileforge.database.settings_store import SettingsStore
 from fileforge.ui.pages.dashboard_page import DashboardPage
@@ -45,6 +47,7 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(1024, 640)
         self.resize(1180, 720)
         self.setStyleSheet(APP_STYLESHEET)
+        self._apply_window_icon()
 
         central = QWidget()
         central.setObjectName("ContentHost")
@@ -70,6 +73,18 @@ class MainWindow(QMainWindow):
         status.setObjectName("StatusBar")
         status.showMessage(f"{__app_name__} v{__version__}  |  Ready")
         self.setStatusBar(status)
+
+    def _apply_window_icon(self) -> None:
+        """Prefer the QApplication icon; fall back to package resources."""
+        app = QApplication.instance()
+        if isinstance(app, QApplication) and not app.windowIcon().isNull():
+            self.setWindowIcon(app.windowIcon())
+            return
+        path = application_icon_path()
+        if path.is_file():
+            icon = QIcon(str(path))
+            if not icon.isNull():
+                self.setWindowIcon(icon)
 
     def _register_pages(self) -> None:
         dashboard = DashboardPage(self._database)

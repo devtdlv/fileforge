@@ -42,8 +42,19 @@ src/fileforge/
 
 - Product name in the UI and documentation: **Junction**
 - Launch command: `python -m fileforge`
+- Packaged Windows entry: `packaging/junction_entry.py` → `Junction.exe`
 - Default database path remains `%LOCALAPPDATA%\FileForge\fileforge.db`
 - Journal schema and table names are unchanged
+- Frozen builds must not store the journal beside the executable or under `_MEIPASS`
+
+## Windows packaging
+
+- Tool: PyInstaller onedir (`packaging/Junction.spec`)
+- Build script: `tools/build_windows.ps1`
+- Output: `dist/Junction/` and `release/Junction-v0.1.0-windows-x64.zip`
+- Qt modules bundled: Core, Gui, Widgets, Network (plus platform plugins)
+- Application icon: `assets/icons/Junction.ico` (embedded in EXE) and
+  `src/fileforge/resources/icons/` (runtime `QApplication` / window icon)
 
 ## Operation History design
 

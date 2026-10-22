@@ -1,14 +1,26 @@
 # Junction User Guide
 
-This guide describes **Milestone 7**: the desktop shell, Folder Scanner, Smart Organizer, Duplicate Finder, Bulk Renamer, read-only Operation History, and polished Dashboard. Undo and restore are not available.
+This guide describes **Milestone 8**: the desktop shell, Folder Scanner, Smart Organizer, Duplicate Finder, Bulk Renamer, read-only Operation History, polished Dashboard, and the portable Windows executable package. Undo and restore are not available.
 
 ## Starting Junction
+
+### Packaged Windows build
+
+Windows release package prepared; public release pending. After you extract `Junction-v0.1.0-windows-x64.zip`:
+
+1. Open the extracted `Junction` folder.
+2. Double-click `Junction.exe`.
+3. Keep the `_internal` folder next to the executable.
+
+The packaged build does not require Python. The executable is unsigned, so Windows SmartScreen may warn on first launch.
+
+### From source
 
 ```powershell
 .\.venv\Scripts\python.exe -m fileforge
 ```
 
-The Python package module remains `fileforge`. On first launch, Junction creates a local SQLite database under `%LOCALAPPDATA%\FileForge\fileforge.db` (legacy folder name preserved so existing operation history stays accessible).
+The Python package module remains `fileforge`. On first launch, Junction creates a local SQLite database under `%LOCALAPPDATA%\FileForge\fileforge.db` (legacy folder name preserved so existing operation history stays accessible). The packaged EXE uses the same database path.
 
 ## Dashboard
 
